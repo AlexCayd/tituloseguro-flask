@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% import "_paginas.html" as p with context %}
+{%- set r = resultado -%}
+{% block title %}{% if r %}Verificación de {{ r.folio }}{% else %}Verificar un título{% endif %}{% endblock %}
+
+{%- macro buscador(valor='', error=none, compacto=false, id='folio') -%}
+<form class="buscador{% if compacto %} buscador--compacto{% else %} tarjeta-papel{% endif %}" action="{{ url_for('verificar') }}" method="get" role="search" aria-label="Verificar un título por su folio"
+  {%- if not compacto %} data-tour="2" data-tour-titulo="Escribe el folio" data-tour-texto="El folio viene impreso en el título o en el enlace que te compartieron. Tiene la forma TS-UAN-13FEF4FB1630. No necesitas cuenta." data-explica="Escribe aquí el folio del documento. Mayúsculas o minúsculas, da igual." data-explica-titulo="El buscador"{% endif %}>
+  <div class="buscador__fila">
+    <div class="campo campo--mono">
+      <label for="{{ id }}">{{ 'Verificar otro folio' if compacto else 'Folio del título' }}</label>
+      <input id="{{ id }}" name="folio" required value="{{ valor }}" placeholder="TS-UAN-13FEF4FB1630" pattern="\s*[Tt][Ss]-[A-Za-z]{3}-[0-9A-Fa-f]{12}\s*" title="TS, las 3 letras de la universidad y 12 caracteres del 0 al 9 o de la A a la F." autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" aria-describedby="{{ id }}-ayuda"{% if error %} aria-invalid="true"{% endif %}>
+    </div>
+    <button type="submit" class="boton boton--primario">{{ c.icono('lupa') }} Verificar</button>
+  </div>
+  {%- if error %}
+  <p class="campo__error" id="{{ id }}-ayuda" role="alert">{{ error }} Revisa que tenga «TS», un guion, las 3 letras de la universidad, otro guion y 12 caracteres del 0 al 9 o de la A a la F.</p>
+  {%- else %}
+  <p class="campo__ayuda" id="{{ id }}-ayuda">Formato: <span class="mono">TS-UAN-13FEF4FB1630</span>. Mayúsculas o minúsculas, da igual.</p>
+  {%- endif %}
+  {%- if not compacto %}
+  <p class="buscador__ejemplo requiere-js" data-v="ejemplo" hidden></p>
+  {%- endif %}
+</form>
+{%- endmacro -%}
+
+{%- macro privacidad(tour=none) -%}
+<div class="privacidad"{% if tour %} data-tour="{{ tour }}" data-tour-titulo="¿Y el nombre?" data-tour-texto="La cadena nunca guarda nombres ni matrículas, solo un código que no se puede revertir. Esta página confirma que el documento es auténtico; para saber que es de quien lo presenta, compáralo con su identificación."{% endif %} data-explica="Por qué aquí nunca aparece el nombre del alumno." data-explica-titulo="Privacidad">
+  {{ c.icono('candado', 'icono privacidad__icono') }}
+  <h2 class="privacidad__titulo" id="privacidad-titulo">¿Por qué no aparece el nombre?</h2>
+  <p>Por privacidad. La cadena es pública, así que <strong>nunca guarda nombres ni matrículas</strong>: solo un {{ p.t('id-alumno', 'ID de alumno', ',') }} un código que no se puede convertir de vuelta en la matrícula.</p>
+  <p>Esta página confirma que <em>el documento</em> es auténtico. Para confirmar que es de quien te lo presenta, compáralo con su identificación oficial.</p>
+</div>
+{%- endmacro -%}
+
+{% block content %}
+{%- set TIPOS_ES = {'título': 'Título', 'diploma': 'Diploma', 'certificado': 'Certificado', 'constancia': 'Constancia'} -%}
+
+{%- if not r %}
+{# ================================================================ sin folio (o folio mal escrito) #}
+{% call p.expediente('Verificar · sin cuenta', 'Comprueba un título <em>en un segundo.</em>',
+    pasos=[('Escribe el folio', 'que viene en el título o en el enlace que te mandaron.'),
+           ('Revisamos seis cosas', 'en la cadena: firma, huella, trabajo, cordón y más.'),
+           ('Recibes una constancia', 'con el estado: vigente, revocado o no encontrado.')],
+    tour=1, tour_titulo='Verifica sin pedir permiso', tour_texto='Cualquier persona —por ejemplo, quien te va a contratar— puede comprobar aquí si un título es auténtico. No hace falta cuenta ni llamar a la universidad.') %}
+  <p>¿Te entregaron un título de Título Seguro? Escribe su folio: revisamos en la cadena pública que sea auténtico, que nadie lo haya alterado y que no esté revocado.</p>
+  {{ buscador(folio, mensaje) }}
+{% endcall %}
+
+<section class="tramo tramo--ajustado" aria-label="Qué revisamos y qué no mostramos">
+  <div class="envoltura verifica-inicio">
+    <div class="pila" style="--pila: var(--e-4)" data-tour="3" data-tour-titulo="Lo que revisamos" data-tour-texto="Cada verificación repasa estas seis pruebas. Si una sola falla, te lo decimos en palabras simples." data-explica="Las seis comprobaciones que hacemos con cada folio." data-explica-titulo="Las seis pruebas">
+      <p class="ceja">Lo que revisamos</p>
+      <h2 class="tramo__titulo">Seis pruebas, <em>todas a la vista.</em></h2>
+      <ol class="lista-pasos verifica-pruebas" role="list">
+        <li><p><strong>Que el folio exista en la cadena.</strong><span>Si no está, nadie lo registró.</span></p></li>
+        <li><p><strong>Que la {{ c.termino('firma', 'firma') }} sea auténtica.</strong><span>Hecha con la llave de una universidad autorizada.</span></p></li>
+        <li><p><strong>Que nadie haya alterado el bloque.</strong><span>Recalculada, su {{ c.termino('huella', 'huella') }} da exactamente la guardada.</span></p></li>
+        <li><p><strong>Que tenga el trabajo de minado.</strong><span>Su huella empieza con los ceros pedidos.</span></p></li>
+        <li><p><strong>Que siga cosido al bloque anterior.</strong><span>El {{ c.termino('huella-anterior', 'cordón') }} coincide.</span></p></li>
+        <li><p><strong>Que toda la cadena sea válida.</strong><span>Y que la universidad no lo haya {{ p.t('revocacion', 'revocado', '.') }}</span></p></li>
+      </ol>
+    </div>
+    {{ privacidad(tour=4) }}
+  </div>
+</section>
+
+{%- else %}
+{# ================================================================ con resultado #}
+{%- set est = r.estado -%}
+{%- set b = r.bloque -%}
+{%- set cont = b.transaccion.contenido if b else none -%}
+{%- set url_v = url_for('verificar_folio', folio=r.folio, _external=True) -%}
+{%- set TITULOS = {
+  'vigente': 'Este título es <em>auténtico y vigente.</em>',
+  'revocada': 'Este título existe, pero <em>fue revocado.</em>',
+  'pendiente': 'Este folio <em>todavía no está sellado.</em>',
+  'desconocida': 'No encontramos <em>este folio.</em>',
+} -%}
+{%- set GOMAS = {'vigente': ('vigente', 'Vigente'), 'revocada': ('revocada', 'Revocada'), 'pendiente': ('pendiente', 'Pendiente'), 'desconocida': ('invalida', 'No encontrada')} -%}
+
+<section class="expediente expediente--veredicto" aria-labelledby="pagina-titulo" data-estado="{{ est }}">
+  <div class="envoltura expediente__rejilla">
+    <div class="expediente__texto" data-tour="1" data-tour-titulo="El veredicto" data-tour-texto="Arriba, en una frase, el resultado. Abajo, la constancia con todos los detalles y cada prueba que hicimos.">
+      <p class="ceja">Verificación del folio <span class="mono">{{ r.folio }}</span></p>
+      <h1 class="titulo-2 expediente__titulo" id="pagina-titulo">{{ TITULOS[est]|safe }}</h1>
+    </div>
+    {{ buscador(r.folio, compacto=true, id='folio-otro') }}
+  </div>
+</section>
+
+<section class="tramo tramo--ajustado" aria-label="Constancia de verificación">
+  <div class="envoltura veredicto">
+    {%- if est in ('vigente', 'revocada') %}
+    {%- set uni = r.universidad or cont.universidad %}
+    {%- set fallas = r.pasos | rejectattr('ok') | list %}
+    <article class="certificado" data-estado="{{ est }}" aria-labelledby="cert-titulo" data-tour="2" data-tour-titulo="La constancia" data-tour-texto="Todo lo que la cadena sabe de este documento: quién lo emitió, qué es, cuándo, y en qué hoja del libro quedó cosido." data-explica="La constancia: los datos que la cadena guarda de esta credencial. No incluye el nombre del alumno." data-explica-titulo="La constancia">
+      <header class="certificado__cabeza">
+        <div class="pila" style="--pila: var(--e-2)">
+          <p class="ceja">Constancia de verificación · Título Seguro</p>
+          <h2 class="certificado__titulo" id="cert-titulo">{{ TIPOS_ES.get(cont.tipo, cont.tipo) }} en <em>{{ cont.programa }}</em></h2>
+          <p class="certificado__folio">{{ r.folio }}</p>
+        </div>
+        {{ c.sello_goma(GOMAS[est][0], GOMAS[est][1], grande=true, clase='certificado__goma sello-goma--estampa') }}
+      </header>
+
+      {%- if est == 'revocada' and r.revocacion %}
+      {%- set rc = r.revocacion.transaccion.contenido %}
+      <div class="certificado__revocacion" role="note">
+        {{ c.icono('alerta', 'icono') }}
+        <p><strong>{{ uni }} anuló este documento el {{ rc.fecha }}.</strong> Motivo: «{{ rc.motivo }}». No se borró nada: la universidad agregó una nota firmada en la hoja #{{ r.revocacion.numero }} del libro, y el registro original sigue en la hoja #{{ b.numero }} para que la historia quede a la vista. No lo aceptes como válido.</p>
+      </div>
+      {%- endif %}
+
+      <div class="certificado__cuerpo">
+        <dl class="ficha certificado__datos">
+          <dt>Universidad</dt><dd>{{ uni }} <span class="etiqueta etiqueta--verde">{{ cont.universidad }}</span></dd>
+          <dt>Documento</dt><dd>{{ TIPOS_ES.get(cont.tipo, cont.tipo) }}</dd>
+          <dt>Programa</dt><dd>{{ cont.programa }}</dd>
+          <dt>Fecha de emisión</dt><dd>{{ cont.fecha_emision }}</dd>
+          <dt>Titular</dt><dd><span class="acta__oculto" role="img" aria-label="Nombre oculto a propósito"></span> <span class="acta__nota">El nombre nunca se escribe en la cadena.</span></dd>
+          <dt>Registrado en</dt><dd>Hoja <a href="{{ url_for('explorador', hasta=b.numero) }}#folio-{{ b.numero }}">#{{ b.numero }}</a> del libro, <time datetime="{{ b.timestamp }}" data-local>{{ b.timestamp[:10] }} · {{ b.timestamp[11:16] }} UTC</time></dd>
+          <dt>Lo selló</dt><dd>{{ b.minero }}, tras encontrar el {{ c.termino('nonce', 'número de intento') }} <span class="mono">{{ b.nonce|miles }}</span></dd>
+        </dl>
+        <figure class="certificado__sello">
+          {{ c.sello(b.firma, 'ok' if not fallas else 'roto', 'Sello de la firma de ' ~ uni ~ ' sobre este documento' ~ ('' if not fallas else ' (agrietado: algo no cuadra)'), 'l', letras=cont.universidad) }}
+          <figcaption>{{ c.termino('sello', 'Sello') }} de la firma de {{ cont.universidad }}</figcaption>
+        </figure>
+      </div>
+
+      {%- set N = b.dificultad %}
+      {%- set PASOS = {
+        'existe':  (('El folio existe', 'Está escrito en la hoja #' ~ b.numero ~ ' de la cadena.'), ('El folio no existe', 'No aparece en la cadena.')),
+        'firma':   (('La firma es auténtica', 'Coincide con la llave pública de ' ~ cont.universidad ~ ', una universidad autorizada.'), ('La firma no es auténtica', 'No corresponde a la llave de quien dice haberla emitido, o el contenido cambió.')),
+        'hash':    (('Nadie ha alterado el bloque', 'Recalculamos su huella y sale idéntica a la guardada.'), ('El bloque fue alterado', 'Su huella recalculada ya no coincide con la guardada.')),
+        'trabajo': (('Tiene el trabajo de minado', 'Su huella empieza con ' ~ N ~ ' ceros: alguien hizo los intentos.'), ('Le falta el trabajo de minado', 'Su huella no empieza con los ceros que se pidieron.')),
+        'enlace':  (('Está cosido al bloque anterior', 'Guarda la huella exacta de la hoja #' ~ (b.numero - 1) ~ '.'), ('El cordón está roto', 'La huella anterior que guarda no coincide con la hoja #' ~ (b.numero - 1) ~ '.')),
+        'cadena':  (('Toda la cadena es válida', 'Revisamos todas las hojas del libro y todo cuadra.'), ('La cadena tiene problemas', 'Alguna hoja del libro no cuadra. Desconfía hasta que se aclare.')),
+      } %}
+      <section class="certificado__pruebas" aria-labelledby="pruebas-titulo" data-tour="3" data-tour-titulo="Las seis pruebas" data-tour-texto="Cada renglón es una comprobación que hicimos ahora mismo sobre la cadena. La palomita verde significa que pasó." data-explica="Las comprobaciones hechas en este momento. Verde: pasó. Rojo: falló." data-explica-titulo="Las pruebas">
+        <h3 class="certificado__subtitulo" id="pruebas-titulo">Lo que comprobamos {{ ('— el registro es auténtico, pero está anulado' if est == 'revocada' else '— todo en orden') if not fallas else '— ' ~ (fallas|length) ~ (' prueba falló' if fallas|length == 1 else ' pruebas fallaron') }}</h3>
+        <ol class="chequeos" role="list">
+          {%- for ps in r.pasos %}
+          {%- set t = PASOS.get(ps.id, ((ps.id, ''), (ps.id, '')))[0 if ps.ok else 1] %}
+          <li class="chequeo" data-ok="{{ 'si' if ps.ok else 'no' }}" style="--i: {{ loop.index0 }}">
+            <span class="chequeo__marca">{{ c.icono('check' if ps.ok else 'cerrar') }}<span class="solo-lectores">{{ 'Pasó:' if ps.ok else 'Falló:' }}</span></span>
+            <p><strong>{{ t[0] }}</strong><span>{{ t[1] }}</span></p>
+          </li>
+          {%- endfor %}
+        </ol>
+      </section>
+
+      <footer class="certificado__pie">
+        <p>Consulta hecha <time class="requiere-js" data-v="ahora"></time><span class="sin-js">al cargar esta página</span>, directamente sobre la cadena pública.</p>
+        <p>{{ c.termino('huella', 'Huella') }} del bloque: {{ c.huella(b.hash, N, n=24) }}</p>
+      </footer>
+    </article>
+
+    {%- elif est == 'pendiente' %}
+    <article class="hoja-aviso" data-estado="pendiente" aria-labelledby="aviso-titulo" data-tour="2" data-tour-titulo="Firmada, pero sin sellar" data-tour-texto="La universidad ya la firmó y está en la fila de minería. Cuando un minero la selle, esta página dirá «vigente»." data-explica="Esta credencial ya está firmada pero espera turno en la fila de minería." data-explica-titulo="Pendiente">
+      {{ c.sello(r.folio, 'pendiente', 'Lugar del sello: todavía sin estampar', 'l') }}
+      <div class="pila" style="--pila: var(--e-3)">
+        {{ c.sello_goma('pendiente', 'Pendiente', grande=true, clase='sello-goma--estampa') }}
+        <h2 class="hoja-aviso__titulo" id="aviso-titulo">Ya está firmada. Le falta que un minero la selle.</h2>
+        <p>La universidad firmó esta credencial y la puso en la {{ p.t('cola', 'fila de minería', '.') }} Todavía no está escrita en la cadena, así que aún no podemos hacer las seis pruebas.</p>
+        <p>Las credenciales se sellan en orden de llegada, una por carrera. <strong>Vuelve en unos minutos</strong>: cuando quede sellada, esta misma dirección mostrará su constancia.</p>
+        <p class="hoja-aviso__vivo requiere-js" data-v="vivo" role="status">Te avisamos aquí en cuanto se selle.</p>
+      </div>
+    </article>
+
+    {%- else %}
+    <article class="hoja-aviso" data-estado="desconocida" aria-labelledby="aviso-titulo" data-tour="2" data-tour-titulo="No está en el libro" data-tour-texto="Buscamos el folio en toda la cadena y en la fila de espera, y no aparece. Revisa que esté bien escrito." data-explica="No hay ninguna hoja con este folio, ni en la cadena ni en la fila de espera." data-explica-titulo="No encontrado">
+      {{ c.sello('folio-desconocido-' ~ r.folio, 'roto', 'Sello agrietado: no hay registro de este folio', 'l', data_agrietar='') }}
+      <div class="pila" style="--pila: var(--e-3)">
+        {{ c.sello_goma('invalida', 'No encontrada', grande=true, clase='sello-goma--estampa') }}
+        <h2 class="hoja-aviso__titulo" id="aviso-titulo">Ninguna hoja del libro tiene el folio <span class="mono">{{ r.folio }}</span>.</h2>
+        <p>Lo buscamos en toda la cadena y en la fila de espera. Antes de sacar conclusiones:</p>
+        <ul class="hoja-aviso__lista" role="list">
+          <li>Revisa letra por letra: es fácil confundir <span class="mono">0</span> con <span class="mono">O</span> o <span class="mono">B</span> con <span class="mono">8</span>.</li>
+          <li>Pide a la persona el enlace o el código QR de su credencial.</li>
+          <li>Si el folio está bien escrito y aun así no aparece, <strong>ese documento no fue registrado en Título Seguro</strong>: no lo des por bueno.</li>
+        </ul>
+      </div>
+    </article>
+    {%- endif %}
+
+    <div class="veredicto__lado">
+      {%- if est != 'desconocida' %}
+      <section class="compartir" aria-labelledby="compartir-titulo" data-tour="4" data-tour-titulo="Compártelo" data-tour-texto="Este código QR y este enlace abren esta misma verificación. Puedes copiarlos o descargarlos para mandarlos a quien necesite comprobar el título." data-explica="Enlace y código QR que abren esta misma verificación." data-explica-titulo="Compartir">
+        <h2 class="compartir__titulo" id="compartir-titulo">Comparte esta verificación</h2>
+        <img class="compartir__qr" src="{{ url_for('qr', folio=r.folio) }}" width="168" height="168" alt="Código QR que abre la verificación del folio {{ r.folio }}">
+        <div class="campo">
+          <label for="enlace-verificar">Enlace directo</label>
+          <input id="enlace-verificar" class="mono" value="{{ url_v }}" readonly>
+        </div>
+        <div class="compartir__acciones">
+          <button type="button" class="boton boton--secundario boton--chico requiere-js" data-copiar="#enlace-verificar"><span data-copiar-etiqueta>Copiar enlace</span></button>
+          <a class="boton boton--secundario boton--chico" href="{{ url_for('qr', folio=r.folio) }}" download="{{ r.folio }}.svg">Descargar QR</a>
+          <button type="button" class="boton boton--fantasma boton--chico requiere-js" data-compartir data-url="{{ url_v }}" data-titulo="Verificación {{ r.folio }}" data-texto="Comprueba este título en Título Seguro:">Compartir…</button>
+        </div>
+        <p class="nota">El {{ c.termino('qr', 'código QR') }} lleva a esta misma página. Cualquiera puede abrirlo, sin cuenta.</p>
+      </section>
+      {%- else %}
+      {%- set partes = r.folio.split('-') %}
+      <section class="panel anatomia" aria-labelledby="anatomia-titulo" data-tour="3" data-tour-titulo="Así se lee un folio" data-tour-texto="Un folio tiene tres partes. Compara cada una con el documento: casi siempre el error está en un carácter de la clave." data-explica="Las tres partes del folio que escribiste, para compararlas con el documento." data-explica-titulo="Anatomía del folio">
+        <h2 class="compartir__titulo" id="anatomia-titulo">Así se lee el folio que escribiste</h2>
+        <p class="anatomia__folio" aria-hidden="true"><span>{{ partes[0] }}</span>-<span>{{ partes[1] }}</span>-<span>{{ partes[2] }}</span></p>
+        <dl class="anatomia__partes">
+          <div><dt>{{ partes[0] }}</dt><dd>Título Seguro, siempre igual.</dd></div>
+          <div><dt>{{ partes[1] }}</dt><dd>Las 3 letras de la universidad que lo emitió.</dd></div>
+          <div><dt>{{ partes[2] }}</dt><dd>La clave única: 12 caracteres, solo del 0 al 9 y de la A a la F.</dd></div>
+        </dl>
+      </section>
+      {%- endif %}
+      {{ privacidad(tour=5) }}
+    </div>
+  </div>
+</section>
+{%- endif %}
+{% endblock %}
+
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/verificar.js') }}"></script>
+{% endblock %}

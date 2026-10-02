@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% import "_paginas.html" as p with context %}
+{% block title %}Explorador de la cadena{% endblock %}
+
+{%- macro detalle(b) -%}
+{%- set tx = b.transaccion -%}
+{%- set cont = tx.contenido -%}
+{%- set genesis = tx.proposito == 'genesis' or b.numero == 0 -%}
+{%- set rev = tx.proposito == 'revocacion' -%}
+{%- if genesis %}
+<p class="folio__aviso">La primera hoja del libro. Nadie la minó y no tiene hoja anterior: por eso su «huella anterior» son 64 ceros. Todas las demás cuelgan de ella.</p>
+{%- elif rev %}
+<p class="folio__aviso folio__aviso--lacre">Esta hoja no borra nada: anota, con la firma de la misma universidad, que el folio <a class="mono" href="{{ url_for('verificar_folio', folio=cont.folio_revocado) }}">{{ cont.folio_revocado }}</a> queda anulado desde el {{ cont.fecha }}. El registro original sigue en su hoja.</p>
+{%- endif %}
+<div class="folio__acciones">
+  {%- if not genesis and not rev %}
+  <a class="boton boton--secundario boton--chico boton--flecha" href="{{ url_for('verificar_folio', folio=cont.folio) }}">{{ c.icono('lupa') }} Verificar este folio {{ c.icono('flecha') }}</a>
+  {%- elif rev %}
+  <a class="boton boton--secundario boton--chico boton--flecha" href="{{ url_for('verificar_folio', folio=cont.folio_revocado) }}">{{ c.icono('lupa') }} Ver el folio revocado {{ c.icono('flecha') }}</a>
+  {%- endif %}
+</div>
+<details class="detalle" data-detalle="{{ b.numero }}">
+  <summary>Detalle técnico <span class="nota">(huella, nonce, firma y el bloque completo)</span></summary>
+  <div class="detalle__cuerpo">
+    <dl class="ficha">
+      <dt>{{ c.termino('huella', 'Huella') }}</dt><dd>{{ c.huella(b.hash, none if genesis else b.dificultad) }}</dd>
+      <dt>{{ c.termino('huella-anterior', 'Huella anterior') }}</dt><dd>{{ c.huella(b.hash_anterior) }}</dd>
+      {%- if not genesis %}
+      <dt>{{ c.termino('nonce', 'Nonce') }}</dt><dd><span class="mono">{{ b.nonce }}</span> <span class="nota">— al dividirlo entre 4 sobra {{ b.nonce % 4 }}: por eso es un número de {{ b.minero }} (ver {{ p.t('reparto', 'reparto', ').') }}</span></dd>
+      <dt>{{ c.termino('dificultad', 'Dificultad') }}</dt><dd>{{ b.dificultad }} ceros <span class="nota">— quedó sellada dentro del bloque.</span></dd>
+      <dt>{{ c.termino('firma', 'Firma') }}</dt><dd><code class="huella">{{ b.firma }}</code></dd>
+      <dt>{{ c.termino('remitente', 'Remitente') }}</dt><dd><code class="huella">{{ tx.remitente }}</code> <span class="nota">— llave pública de {{ cont.universidad if not rev else 'quien revoca' }}.</span></dd>
+      {%- endif %}
+      <dt>Hora</dt><dd><span class="mono">{{ b.timestamp }}</span></dd>
+    </dl>
+    <div class="json__cabeza">
+      <p class="rotulo">El bloque completo, en {{ c.termino('json', 'JSON') }}</p>
+      <button type="button" class="boton boton--secundario boton--chico requiere-js" data-copiar="#json-{{ b.numero }}"><span data-copiar-etiqueta>Copiar JSON</span></button>
+    </div>
+    <pre class="json" id="json-{{ b.numero }}" tabindex="0" aria-label="Bloque {{ b.numero }} en formato JSON" data-json>{{ b|tojson(indent=2) }}</pre>
+  </div>
+</details>
+{%- endmacro -%}
+
+{% block content %}
+{%- set TIPOS_ES = {'título': 'Título', 'diploma': 'Diploma', 'certificado': 'Certificado', 'constancia': 'Constancia'} -%}
+{%- set hasta = request.args.get('hasta') -%}
+{%- set primera = not hasta -%}
+{%- set ganadores = ranking | selectattr('bloques') | list | length -%}
+
+{% call p.expediente('Explorador · el libro público', 'El libro, <em>hoja por hoja.</em>',
+    pasos=[('Mira si está íntegro', 'en el sello de arriba: lo revisamos completo cada vez.'),
+           ('Recorre las hojas', 'de la más nueva a la más antigua; cada una cuelga de la anterior.'),
+           ('Abre el detalle técnico', 'o verifica cualquier folio con un clic.')],
+    tour=1, tour_titulo='El libro público', tour_texto='Aquí está todo lo que se ha sellado, a la vista de cualquiera. No necesitas cuenta para leerlo; solo las universidades pueden escribir en él, y solo los mineros pueden sellar.') %}
+  <p>Todo lo que se ha sellado en Título Seguro, a la vista de cualquiera. Cada {{ c.termino('bloque', 'hoja') }} guarda una credencial o una revocación, quién la selló y la {{ c.termino('huella', 'huella') }} que la cose con la anterior.</p>
+{% endcall %}
+
+<section class="tramo tramo--ajustado" aria-labelledby="estado-titulo">
+  <div class="envoltura libro-estado">
+    <div class="libro-estado__sello" data-tour="2" data-tour-titulo="¿Está íntegro?" data-tour-texto="Cada vez que alguien abre esta página revisamos la cadena completa: que cada huella cuadre, cada firma sea auténtica y cada hoja apunte a la anterior. Si algo no cuadra, este sello lo dice." data-explica="Resultado de revisar la cadena completa ahora mismo." data-explica-titulo="Estado de la cadena">
+      {{ c.sello_goma('valida' if validacion.valida else 'invalida', 'Cadena íntegra' if validacion.valida else 'Cadena rota', grande=true, data_cadena_valida='', data_texto_ok='Cadena íntegra', data_texto_mal='Cadena rota') }}
+      <h2 class="libro-estado__titulo" id="estado-titulo">{% if validacion.valida %}Todo cuadra, <em>de la primera a la última hoja.</em>{% else %}Hay hojas que <em>no cuadran.</em>{% endif %}</h2>
+      {%- if validacion.valida %}
+      <p>Revisamos las <span data-vivo="longitud" data-vivo-fmt="miles">{{ estado.longitud|miles }}</span> hojas: cada huella, cada firma, el trabajo de minado y cada cordón.</p>
+      {%- else %}
+      <p>Encontramos {{ validacion.problemas|length }} {{ 'problema' if validacion.problemas|length == 1 else 'problemas' }}. El primero, en la hoja #{{ validacion.problemas[0].bloque }}: {{ validacion.problemas[0].mensaje }}</p>
+      {%- endif %}
+      <a class="boton boton--fantasma boton--flecha libro-estado__lab" href="{{ url_for('laboratorio') }}">{{ c.icono('matraz') }} ¿Y si alguien hace trampa? Pruébalo {{ c.icono('flecha') }}</a>
+    </div>
+
+    <dl class="cifras libro-estado__cifras" data-tour="3" data-tour-titulo="El libro en números" data-tour-texto="Estas cifras se actualizan solas: cuántas hojas se han minado, qué tan difícil es sellar la siguiente y cuántas credenciales esperan turno." data-explica="Cifras del libro que se actualizan solas con cada carrera." data-explica-titulo="Cifras">
+      <div><dt>Hojas minadas</dt><dd data-x="minados">{{ (estado.longitud - 1)|miles }}</dd><dd class="cifras__nota">más la hoja 0, el {{ c.termino('genesis', 'génesis') }}</dd></div>
+      <div><dt>{{ c.termino('dificultad', 'Dificultad') }}</dt><dd><span data-vivo="dificultad_config">{{ estado.dificultad_config }}</span><small>ceros</small></dd><dd class="cifras__nota">1 intento de cada {{ (16 ** estado.dificultad_config)|miles }} acierta</dd></div>
+      <div><dt>Esperando turno</dt><dd data-vivo="cola" data-vivo-fmt="miles">{{ estado.cola|miles }}</dd><dd class="cifras__nota">credenciales firmadas en la {{ c.termino('cola', 'fila') }}</dd></div>
+      <div><dt>Escribanos que han ganado</dt><dd><span data-x="ganadores">{{ ganadores }}</span><small>de {{ NODOS|length }}</small></dd><dd class="cifras__nota">cada carrera la gana uno solo</dd></div>
+    </dl>
+
+    <div class="libro-estado__ranking" data-tour="4" data-tour-titulo="Los cuatro escribanos" data-tour-texto="Cuántas hojas ha sellado cada minero y cuánto ha cobrado. La suerte manda: ganar una carrera no da ventaja en la siguiente." data-explica="Bloques sellados y recompensa cobrada por cada minero." data-explica-titulo="Tabla de escribanos">
+      <h2 class="rotulo">Tabla de escribanos</h2>
+      {{ p.escribanos(ranking) }}
+    </div>
+  </div>
+</section>
+
+<section class="tramo explorador-hojas" aria-labelledby="hojas-titulo">
+  <div class="envoltura">
+    <header class="tramo__cabeza">
+      <p class="ceja">{% if primera %}Las hojas más recientes{% else %}Hojas anteriores{% endif %}</p>
+      <h2 class="tramo__titulo" id="hojas-titulo">{% if bloques %}De la hoja #<span data-x="desde">{{ bloques[0].numero }}</span> <em>a la #<span data-x="hasta">{{ bloques[-1].numero }}</span>.</em>{% else %}No hay hojas <em>en este tramo.</em>{% endif %}</h2>
+      <p class="tramo__intro">Fíjate en los colores: la «huella del folio anterior» de cada hoja es idéntica a la «huella» de la hoja de abajo. Las <strong class="explorador__marca explorador__marca--rev">revocaciones</strong> se marcan en rojo lacre y el <strong class="explorador__marca explorador__marca--gen">génesis</strong>, en pergamino.{% if primera %} Cuando alguien sella una hoja nueva, aparece arriba sola.{% endif %}</p>
+    </header>
+
+    {%- if bloques %}
+    <div class="explorador__rejilla">
+      <nav class="indice" aria-labelledby="indice-titulo">
+        <h3 class="rotulo" id="indice-titulo">Índice de esta página</h3>
+        <ol class="indice__lista" role="list" data-indice>
+          {%- for b in bloques %}
+          {%- set r = resumen(b) %}
+          <li class="indice__item indice__item--{{ 'genesis' if r.proposito == 'genesis' else ('revocacion' if r.proposito == 'revocacion' else 'registro') }}">
+            <a href="#folio-{{ r.numero }}">
+              <span class="indice__num">#{{ r.numero }}</span>
+              <span class="indice__que">{% if r.proposito == 'genesis' %}Primera hoja del libro{% elif r.proposito == 'revocacion' %}Revocación de {{ r.folio }}{% else %}{{ TIPOS_ES.get(r.tipo, r.tipo) }} en {{ r.programa }}{% endif %}</span>
+              <span class="indice__quien">{{ '—' if r.proposito == 'genesis' else r.minero }}</span>
+            </a>
+          </li>
+          {%- endfor %}
+        </ol>
+      </nav>
+
+      <div class="explorador__legajo" data-tour="5" data-tour-titulo="Cada hoja, cosida" data-tour-texto="Cada folio muestra qué guarda, quién lo selló y el sello de la firma de la universidad. Abre «Detalle técnico» para ver la huella completa, el nonce, la firma y el bloque tal cual, en JSON." data-explica="Las hojas de la cadena. El cordón une la huella anterior de cada hoja con la huella de la de abajo." data-explica-titulo="El legajo">
+        <ol class="legajo" role="list"{% if primera %} data-legajo-vivo data-max="20"{% endif %}>
+          {%- for b in bloques %}
+          {% call c.folio(b, validacion.bloques[b.numero] if validacion.bloques|length > b.numero else none) %}{{ detalle(b) }}{% endcall %}
+          {%- endfor %}
+        </ol>
+      </div>
+    </div>
+    {%- else %}
+    <div class="vacio"><strong>No hay hojas en este tramo</strong><span>Vuelve a <a href="{{ url_for('explorador') }}">las más recientes</a>.</span></div>
+    {%- endif %}
+
+    <nav class="paginacion" aria-label="Más hojas">
+      {%- if not primera %}
+      <a class="boton boton--secundario" href="{{ url_for('explorador') }}">Volver a las más recientes</a>
+      {%- endif %}
+      {%- if siguiente is not none %}
+      <a class="boton boton--primario boton--flecha" href="{{ url_for('explorador', hasta=siguiente) }}">Ver hojas más antiguas {{ c.icono('flecha') }}</a>
+      {%- elif bloques %}
+      <p class="nota">Llegaste a la primera hoja del libro.</p>
+      {%- endif %}
+    </nav>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/explorador.js') }}"></script>
+{% endblock %}

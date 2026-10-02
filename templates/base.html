@@ -1,0 +1,187 @@
+{%- import "_componentes.html" as c with context -%}
+{%- set rol = usuario.rol if usuario else none -%}
+{%- set ROLES_ES = {'ADMIN': 'Administración', 'UNIVERSITY': 'Universidad', 'MINER': 'Minero', 'STUDENT': 'Alumno'} -%}
+{%- set ep = request.endpoint or '' -%}
+{%- set enlaces = [('index', 'Inicio', none), ('verificar', 'Verificar', none), ('explorador', 'Explorador', none), ('laboratorio', 'Laboratorio', none)] -%}
+{%- if rol in ('UNIVERSITY', 'ADMIN') %}{% set enlaces = enlaces + [('emitir', 'Emitir', none)] %}{% endif -%}
+{%- if rol in ('MINER', 'ADMIN') %}{% set enlaces = enlaces + [('mineria', 'Minería', none)] %}{% endif -%}
+{%- if rol == 'STUDENT' %}{% set enlaces = enlaces + [('mi_cuenta', 'Mi cuenta', none)] %}{% endif -%}
+{%- if rol == 'ADMIN' %}{% set enlaces = enlaces + [('cronometro', 'Cronómetro', 'admin'), ('admin', 'Admin', 'admin')] %}{% endif -%}
+<!doctype html>
+<html lang="es-MX" class="no-js" data-explicador="off">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#1B4332">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="description" content="Título Seguro: simulador educativo de una cadena de bloques para títulos universitarios. Firma, prueba de trabajo y verificación pública, explicadas paso a paso.">
+  <title>{% block title %}Título Seguro{% endblock %} · Título Seguro</title>
+  <script nonce="{{ csp_nonce }}">
+    /* antes del primer pintado: activa los estilos con JS y recuerda el modo explicador */
+    (function () {
+      var h = document.documentElement;
+      h.classList.remove('no-js');
+      h.classList.add('js');
+      try { if (localStorage.getItem('ts.explicador') === 'on') h.setAttribute('data-explicador', 'on'); } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..900,0..100,0..1;1,9..144,300..900,0..100,0..1&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,300..800;1,400..700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/notaria.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/paginas.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  {% block head %}{% endblock %}
+  <script defer src="{{ url_for('static', filename='js/ts.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/sello.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/glosario.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/explicador.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/tour.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/carrera.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/paginas.js') }}"></script>
+</head>
+<body data-pagina="{{ ep or 'error' }}">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M4.5 12h15M13.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-abajo" viewBox="0 0 24 24"><path d="M12 4.5v15M6 13.5l6 6 6-6"/></symbol>
+    <symbol id="i-pluma" viewBox="0 0 24 24"><path d="M20.5 3.5c-7.5.4-12.6 4.9-14.6 12.4l-1.4 4.6 4.6-1.4c7.5-2 12-7.1 11.4-15.6Z"/><path d="M5.2 18.8 14 10M9.3 9.8l4.7.2"/></symbol>
+    <symbol id="i-llave" viewBox="0 0 24 24"><circle cx="7.5" cy="16.5" r="4"/><path d="m10.4 13.6 9.6-9.6M16.5 7.5l2.5 2.5M14 10l2 2"/></symbol>
+    <symbol id="i-candado" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2.5"/></symbol>
+    <symbol id="i-lupa" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+    <symbol id="i-libro" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5H6.5A2.5 2.5 0 0 0 4 21V5.5Z"/><path d="M4 21a2.5 2.5 0 0 1 2.5-2.5M8.5 7.5h7"/></symbol>
+    <symbol id="i-ojo" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-pregunta" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.6 2.3c-.7.4-1.2.9-1.2 1.7v.6"/><path d="M12 16.9v.1"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h11"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3.5 21.5 20h-19L12 3.5Z"/><path d="M12 10v4.5M12 17.2v.1"/></symbol>
+    <symbol id="i-salir" viewBox="0 0 24 24"><path d="M14 4.5h4.5v15H14M10 8l-4 4 4 4M6 12h10"/></symbol>
+    <symbol id="i-matraz" viewBox="0 0 24 24"><path d="M9 3.5h6M10 3.5v6l-5.2 8.8A1.8 1.8 0 0 0 6.3 21h11.4a1.8 1.8 0 0 0 1.5-2.7L14 9.5v-6M7.5 15h9"/></symbol>
+    <symbol id="i-cadena" viewBox="0 0 24 24"><path d="M10 13.5a4 4 0 0 0 5.7.3l3-3a4 4 0 0 0-5.7-5.6l-1.4 1.4"/><path d="M14 10.5a4 4 0 0 0-5.7-.3l-3 3a4 4 0 0 0 5.7 5.6l1.4-1.4"/></symbol>
+  </svg>
+
+  <a class="salta" href="#contenido">Saltar al contenido</a>
+
+  <header class="cabecera">
+    <div class="cabecera__interior">
+      <p class="cabecera__lema">Simulador educativo <span>Dificultad actual: {{ dificultad_actual }} ceros</span></p>
+      <a class="marca" href="{{ url_for('index') }}" aria-label="Título Seguro, ir al inicio">
+        <svg class="marca__emblema" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+          <path class="hex-borde" d="M20 2.5 35.2 11.25v17.5L20 37.5 4.8 28.75v-17.5Z"/>
+          <path class="hex-interior" d="M20 8.5 30 14.25v11.5L20 31.5 10 25.75v-11.5Z"/>
+          <path class="gota" d="M20 13.2c3.4 0 6.2 2.6 6.2 6s-2.6 7.3-6.2 7.3-6.2-3.9-6.2-7.3 2.8-6 6.2-6Z"/>
+        </svg>
+        <span>Título Seguro</span>
+      </a>
+      <button type="button" class="cabecera__menu-boton" popovertarget="menu-principal" aria-controls="menu-principal">{{ c.icono('menu') }} Menú</button>
+      <div class="menu" id="menu-principal" popover>
+        <div class="menu__cabeza">
+          <span class="ceja">Menú</span>
+          <button type="button" class="boton boton--secundario boton--chico" popovertarget="menu-principal" popovertargetaction="hide">{{ c.icono('cerrar') }} Cerrar</button>
+        </div>
+        <div class="herramientas requiere-js" data-tour="90" data-tour-titulo="Tus tres ayudas" data-tour-texto="«¿Cómo funciona?» repite este recorrido. El modo explicador pone un número sobre cada parte de la página. El glosario explica las palabras técnicas con ejemplos de la vida diaria.">
+          <button type="button" class="herramienta" data-accion="tour">{{ c.icono('pregunta') }} ¿Cómo funciona?</button>
+          <button type="button" class="herramienta interruptor" data-accion="explicador" aria-pressed="false"><span class="interruptor__riel" aria-hidden="true"></span> Modo explicador</button>
+          <button type="button" class="herramienta" data-accion="glosario">{{ c.icono('libro') }} Glosario</button>
+        </div>
+        <div class="sesion">
+          {%- if usuario %}
+          <p class="sesion__quien"><strong>{{ usuario.nombre }}</strong><span>{{ ROLES_ES.get(rol, rol) }}{% if usuario.universidad_codigo and rol == 'UNIVERSITY' %} · {{ usuario.universidad_codigo }}{% endif %}</span></p>
+          <form method="post" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="boton boton--secundario boton--chico">{{ c.icono('salir') }} Salir</button>
+          </form>
+          {%- else %}
+          <span class="sesion__quien"><span>Estás de visita</span></span>
+          <a class="boton boton--oro boton--chico" href="{{ url_for('login', siguiente=request.path) if ep != 'login' else url_for('login') }}">Entrar</a>
+          {%- endif %}
+        </div>
+        <nav aria-label="Principal">
+          <ul class="nav">
+            {%- for e, texto, marca in enlaces %}
+            <li><a href="{{ url_for(e) }}"{% if ep == e or (e == 'verificar' and ep == 'verificar_folio') %} aria-current="page"{% endif %}>{{ texto }}{% if marca %}<span class="nav__rol">{{ marca }}</span>{% endif %}</a></li>
+            {%- endfor %}
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div id="ts-pines" class="pines"></div>
+
+  {%- with mensajes = get_flashed_messages(with_categories=true) %}
+  {%- if mensajes %}
+  <div class="envoltura avisos">
+    {%- for categoria, texto in mensajes %}
+    <div class="alerta alerta--{{ 'error' if categoria == 'error' else 'ok' }}" role="{{ 'alert' if categoria == 'error' else 'status' }}">
+      {{ c.icono('alerta' if categoria == 'error' else 'check', 'icono alerta__marca') }}
+      <p class="alerta__texto">{{ texto }}</p>
+      <button type="button" class="alerta__cerrar requiere-js" aria-label="Cerrar aviso">{{ c.icono('cerrar') }}</button>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- endif %}
+  {%- endwith %}
+
+  <main id="contenido" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="pie oscuro">
+    <div class="envoltura">
+      <div class="pie__interior">
+        <div class="pila">
+          <p class="pie__lema">Firmar, sellar, coser. <em>Lo demás es matemáticas.</em></p>
+          <p class="nota">Título Seguro muestra, paso a paso, cómo una cadena de bloques protege los títulos universitarios.</p>
+        </div>
+        <nav aria-label="Pie de página">
+          <h2>Recorre</h2>
+          <ul>
+            <li><a href="{{ url_for('verificar') }}">Verificar un título</a></li>
+            <li><a href="{{ url_for('explorador') }}">Explorador de la cadena</a></li>
+            <li><a href="{{ url_for('laboratorio') }}">Laboratorio de alteraciones</a></li>
+            {%- if not usuario %}<li><a href="{{ url_for('login') }}">Entrar</a></li>{% endif %}
+          </ul>
+        </nav>
+        <div class="requiere-js">
+          <h2>Aprende</h2>
+          <ul>
+            <li><button type="button" class="enlace-boton" data-accion="tour">Recorrido de esta página</button></li>
+            <li><button type="button" class="enlace-boton" data-accion="glosario">Glosario con ejemplos</button></li>
+            <li><button type="button" class="enlace-boton" data-accion="explicador" aria-pressed="false">Modo explicador</button></li>
+          </ul>
+        </div>
+      </div>
+      <p class="pie__legal"><span>Simulador educativo: nada de lo que ves aquí es un documento oficial.</span><span class="mono">SHA-256 · Ed25519 · prueba de trabajo</span></p>
+    </div>
+  </footer>
+
+  <dialog id="ts-glosario" class="cajon" aria-labelledby="ts-glosario-titulo" closedby="any">
+    <div class="cajon__interior">
+      <header class="cajon__cabeza">
+        <div class="pila" style="--pila: var(--e-2)">
+          <p class="ceja">Glosario</p>
+          <h2 id="ts-glosario-titulo" class="titulo-3">Palabras técnicas, en palabras simples</h2>
+          <p class="nota" data-glosario-cuenta></p>
+          <div class="campo glosario__buscar">
+            <label for="glosario-buscar">Buscar un término</label>
+            <input id="glosario-buscar" type="search" data-glosario-buscar autocomplete="off" placeholder="Por ejemplo: huella, nonce, firma…">
+          </div>
+        </div>
+        <button type="button" class="cajon__cerrar" data-accion="cerrar-glosario" aria-label="Cerrar glosario">{{ c.icono('cerrar') }}</button>
+      </header>
+      <div class="cajon__cuerpo">
+        <dl class="glosario__lista" data-glosario-lista></dl>
+        <p class="glosario__vacio" data-glosario-vacio hidden>No encontramos ese término. Prueba con otra palabra.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="ts-anuncios" class="solo-lectores" aria-live="polite" aria-atomic="true"></div>
+  {%- if estado is defined and estado %}
+  <script type="application/json" id="ts-estado-inicial">{{ estado|tojson }}</script>
+  {%- endif %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

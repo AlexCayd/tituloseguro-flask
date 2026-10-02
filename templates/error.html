@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block title %}Error {{ codigo|default(500) }}{% endblock %}
+
+{% block content %}
+{%- set TITULOS = {
+  400: 'Algo no cuadró en la petición.',
+  401: 'Primero tienes que entrar.',
+  403: 'Esta puerta no es para tu papel.',
+  404: 'Esta hoja no está en el libro.',
+  409: 'Ahora mismo no se puede.',
+  429: 'Demasiados intentos seguidos.',
+} -%}
+{%- set cod = codigo|default(500)|int -%}
+<section class="error-pagina">
+  <div class="envoltura error-pagina__rejilla">
+    {{ c.sello('error-' ~ cod, 'roto', 'Sello agrietado: algo salió mal', 'l', data_agrietar='') }}
+    <div class="pila" style="--pila: var(--e-4)">
+      <p class="numeral error-pagina__codigo" aria-hidden="true">{{ cod }}</p>
+      <p class="ceja">Error {{ cod }}</p>
+      <h1 class="titulo-2">{{ TITULOS.get(cod, 'Se nos atoró la pluma.') }}</h1>
+      <p class="lede">{{ mensaje or 'Ocurrió un error inesperado. Inténtalo de nuevo en un momento.' }}</p>
+      <div class="grupo">
+        <a class="boton boton--primario" href="{{ url_for('index') }}">Volver al inicio</a>
+        <a class="boton boton--secundario" href="{{ url_for('verificar') }}">{{ c.icono('lupa') }} Verificar un título</a>
+        {%- if cod == 403 and not usuario %}<a class="boton boton--fantasma" href="{{ url_for('login') }}">Entrar</a>{% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

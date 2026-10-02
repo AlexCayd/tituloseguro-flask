@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% import "_paginas.html" as p with context %}
+{% from "_carrera.html" import carrera, segundos with context %}
+{% block title %}Minería{% endblock %}
+
+{% block content %}
+{%- set N = estado.dificultad_config -%}
+{%- set vel = estado.hashrate_ultima or (estado.nodos | sum(attribute='hashrate')) -%}
+
+{% call p.expediente('Minería · ' ~ usuario.nombre, 'Cuatro escribanos, <em>una sola cerradura.</em>',
+    pasos=[('Pulsa «Iniciar carrera»', 'y la siguiente credencial de la fila se reparte a los cuatro.'),
+           ('Mira cómo prueban números', 'hasta que una huella salga con los ceros pedidos.'),
+           ('El ganador la cose a la cadena', 'y cobra ' ~ RECOMPENSA ~ ' TS.')],
+    tour=1, tour_titulo='Aquí se sella la cadena', tour_texto='Desde esta página arrancas las carreras de minería. Cada carrera sella una credencial de la fila y agrega una hoja nueva a la cadena.') %}
+  <p>Aquí arrancas las carreras. Cada una toma la siguiente credencial de la fila y los cuatro {{ c.termino('minero', 'escribanos') }} compiten por sellarla: gana quien encuentre primero una {{ c.termino('huella', 'huella') }} que empiece con los ceros pedidos.</p>
+{% endcall %}
+
+<section class="tramo oscuro mineria-sala" aria-label="La carrera">
+  <div class="envoltura">
+    {{ carrera(estado, cola=cola, id='carrera', tour=2, nivel=2, siguiente='/mineria#carrera') }}
+  </div>
+</section>
+
+<section class="tramo" aria-labelledby="tablero-titulo">
+  <div class="envoltura">
+    <header class="tramo__cabeza">
+      <p class="ceja">El tablero</p>
+      <h2 class="tramo__titulo" id="tablero-titulo">Quién va ganando, qué sigue <em>y cómo queda el libro.</em></h2>
+    </header>
+    <div class="tablero">
+      <div class="pila" style="--pila: var(--e-3)" data-tour="5" data-tour-titulo="Tabla de escribanos" data-tour-texto="Cuántas hojas ha sellado cada escribano y cuánto ha cobrado. Se actualiza sola al terminar cada carrera." data-explica="Bloques ganados y recompensa cobrada por cada escribano. Se actualiza sola." data-explica-titulo="Tabla de escribanos">
+        <h3 class="rotulo">Tabla de escribanos</h3>
+        {{ p.escribanos(ranking) }}
+      </div>
+
+      <div class="pila" style="--pila: var(--e-3)" data-tour="6" data-tour-titulo="La fila" data-tour-texto="Las próximas credenciales que se sellarán, en orden. La primera es la que entra a la siguiente carrera." data-explica="Las próximas credenciales de la fila, en el orden en que se sellarán." data-explica-titulo="La fila">
+        <h3 class="rotulo">Lo que sigue en la fila</h3>
+        <p class="tablero__cuenta"><span data-vivo="cola" data-vivo-fmt="miles">{{ estado.cola|miles }}</span> credenciales esperan turno.</p>
+        {%- if cola %}
+        <ol class="fila" role="list" data-m="fila">
+          {%- for pend in cola %}{{ p.papeleta(pend) }}{% endfor %}
+        </ol>
+        {%- else %}
+        <div class="vacio vacio--chico"><strong>La fila está vacía</strong><span>Cuando una universidad firme una credencial, aparecerá aquí.</span></div>
+        {%- endif %}
+      </div>
+
+      <div class="pila" style="--pila: var(--e-3)" data-tour="7" data-tour-titulo="Lo último sellado" data-tour-texto="Las hojas más recientes de la cadena. Cuando termina una carrera, la hoja nueva aparece aquí, cosida a la anterior." data-explica="Las tres hojas más recientes. La que acaba de sellarse aparece arriba sola." data-explica-titulo="Lo último sellado">
+        <div class="tablero__estado">
+          <h3 class="rotulo">Lo último sellado</h3>
+          {{ c.sello_goma('valida' if validacion.valida else 'invalida', 'Cadena íntegra' if validacion.valida else 'Cadena rota', chico=true, data_cadena_valida='', data_texto_ok='Cadena íntegra', data_texto_mal='Cadena rota') }}
+        </div>
+        <ol class="legajo legajo--chico" role="list" data-m="legajo" aria-label="Las hojas más recientes de la cadena"></ol>
+        <p class="nota sin-js">Las hojas más recientes están en el <a href="{{ url_for('explorador') }}">explorador</a>.</p>
+        <p class="nota"><a href="{{ url_for('explorador') }}">Ver toda la cadena en el explorador</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tramo pergamino" aria-labelledby="reglas-titulo">
+  <div class="envoltura">
+    <header class="tramo__cabeza">
+      <p class="ceja">Las reglas del juego</p>
+      <h2 class="tramo__titulo" id="reglas-titulo">Difícil de encontrar, <em>fácil de comprobar.</em></h2>
+      <p class="tramo__intro">Eso es la {{ c.termino('pow', 'prueba de trabajo') }}: encontrar el número ganador cuesta millones de intentos, pero comprobar que es correcto toma una sola cuenta.</p>
+    </header>
+    <div class="reglas">
+      <article class="panel regla" data-tour="8" data-tour-titulo="¿Qué tan difícil?" data-tour-texto="La dificultad es cuántos ceros debe tener la huella al inicio. Cada cero de más hace el trabajo 16 veces mayor, porque cada carácter puede tener 16 valores." data-explica="Qué significa la dificultad actual y cuánto tarda cada opción en este servidor." data-explica-titulo="Dificultad">
+        <h3 class="panel__titulo">La {{ c.termino('dificultad', 'dificultad') }}: <em>{{ N }} ceros</em></h3>
+        <div class="ranuras regla__ranuras" aria-hidden="true">{% for k in range(N) %}<span class="es-cero">0</span>{% endfor %}{% for k in range(3) %}<span>·</span>{% endfor %}</div>
+        <p>Cada carácter de una huella puede ser uno de 16 valores (0–9 y a–f). Que el primero sea cero pasa 1 de cada 16 veces; que lo sean los primeros {{ N }}, 1 de cada {{ (16 ** N)|miles }}.</p>
+        <table class="tabla regla__tabla">
+          <caption class="solo-lectores">Intentos y tiempo esperados según la dificultad</caption>
+          <thead><tr><th scope="col">Ceros</th><th scope="col" class="num">Acierta 1 de cada</th><th scope="col" class="num">Tiempo esperado aquí</th></tr></thead>
+          <tbody>
+            {%- for d in DIFICULTADES %}
+            <tr{% if d == N %} class="es-actual" aria-current="true"{% endif %}>
+              <th scope="row">{{ d }}{% if d == N %} <span class="etiqueta etiqueta--oro">actual</span>{% endif %}</th>
+              <td class="num">{{ (16 ** d)|miles }}</td>
+              <td class="num" data-m="t{{ d }}">{% if vel %}≈ {{ segundos((16 ** d) / vel) }}{% else %}—{% endif %}</td>
+            </tr>
+            {%- endfor %}
+          </tbody>
+        </table>
+        <p class="nota"><span data-m="t-vel">{% if vel %}Calculado con la velocidad real de la última carrera: {{ vel|miles }} intentos por segundo entre los cuatro.{% else %}Cuando termine la primera carrera, aquí verás cuánto tarda cada opción en este servidor.{% endif %}</span>{% if usuario.rol == 'ADMIN' %} La dificultad se cambia en <a href="{{ url_for('admin') }}#dificultad">Administración</a>; los tiempos reales, en el <a href="{{ url_for('cronometro') }}">cronómetro</a>.{% else %} La dificultad la elige la administración.{% endif %}</p>
+      </article>
+
+      <article class="panel regla" data-tour="9" data-tour-titulo="Nadie repite trabajo" data-tour-texto="Los números de intento se reparten: Derek prueba 0, 4, 8…; Carlos 1, 5, 9…; Alicia 2, 6, 10…; Bruno 3, 7, 11… Leídos por columnas salen todos, sin saltar ni repetir ninguno." data-explica="Cómo se reparten los números de intento entre los cuatro escribanos." data-explica-titulo="Reparto">
+        <h3 class="panel__titulo">El {{ c.termino('reparto', 'reparto') }} <em>de números</em></h3>
+        <p>Para no repetir trabajo, cada escribano prueba su propia serie de {{ c.termino('nonce', 'números de intento') }}. Lee la tabla por columnas: 0, 1, 2, 3, 4, 5… Están todos, ninguno se repite y ninguno se salta.</p>
+        <table class="reparto">
+          <caption class="solo-lectores">Los primeros números de intento de cada escribano</caption>
+          <tbody>
+            {%- for nombre in NODOS %}
+            {%- set i = loop.index0 %}
+            <tr data-i="{{ i }}">
+              <th scope="row">{{ nombre }}</th>
+              {%- for k in range(6) %}<td>{{ i + 4 * k }}</td>{% endfor %}
+              <td class="reparto__mas" aria-label="y así sigue">…</td>
+            </tr>
+            {%- endfor %}
+          </tbody>
+        </table>
+        <p class="nota">Al recibir un bloque, el servidor revisa que el nonce sea de la serie de quien lo selló: si Derek entregara un 5, se rechazaría.</p>
+      </article>
+
+      <article class="panel regla regla--rol" data-tour="10" data-tour-titulo="¿Por qué hace falta ser minero?" data-tour-texto="Minar pone al servidor a trabajar al máximo, así que solo las cuentas de minero y la administración pueden arrancar carreras. Mirar las carreras, en cambio, lo puede hacer cualquiera." data-explica="Por qué solo las cuentas de minero pueden iniciar carreras." data-explica-titulo="Rol de minero">
+        <h3 class="panel__titulo">¿Por qué hace falta <em>ser minero?</em></h3>
+        <p><strong>Porque minar cuesta.</strong> Cada carrera pone a cuatro {{ c.termino('hilo', 'hilos') }} del servidor a calcular huellas sin parar. En esta {{ c.termino('red-permisionada', 'red permisionada') }} solo las cuentas de minero (y la administración) pueden arrancarlas, para que nadie sature el servidor por accidente o a propósito.</p>
+        <p><strong>Y un minero no puede hacer trampa.</strong> La credencial llega ya firmada por la universidad: el minero solo busca el número de intento. Si cambiara una sola letra, la {{ p.t('firma', 'firma', ',') }} dejaría de cuadrar y la red rechazaría el bloque.</p>
+        <p class="nota">Mirar la carrera lo puede hacer cualquiera, sin cuenta: también está en la <a href="{{ url_for('index') }}#cap-carrera">portada</a>.</p>
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/mineria.js') }}"></script>
+{% endblock %}

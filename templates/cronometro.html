@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% import "_paginas.html" as p with context %}
+{% block title %}Cronómetro de dificultad{% endblock %}
+
+{%- macro filas_resultados(res) -%}
+{%- for d, x in res|dictsort %}
+<tr>
+  <th scope="row">{{ x.dificultad }} ceros</th>
+  <td class="num">{{ x.rondas }}</td>
+  <td class="num"><strong>{{ '%.3f'|format(x.tiempo_medio) }} s</strong></td>
+  <td class="num">{{ '%.3f'|format(x.tiempo_min) }} – {{ '%.3f'|format(x.tiempo_max) }} s</td>
+  <td class="num">{{ x.intentos_medios|miles }}</td>
+  <td class="num">{{ x.intentos_teoricos|miles }}</td>
+  <td class="num">{{ '%.2f'|format(x.intentos_medios / x.intentos_teoricos) }}×</td>
+  <td class="num">{{ x.hashrate_medio|miles }}</td>
+</tr>
+{%- endfor %}
+{%- endmacro -%}
+
+{% block content %}
+{%- set res = estado.resultados or {} -%}
+
+{% call p.expediente('Cronómetro · administración', '¿Cuánto cuesta <em>un cero más?</em>',
+    pasos=[('Elige cuántas rondas', 'quieres medir con 3, 4 y 5 ceros.'),
+           ('Empieza la medición', 'y espera: con 5 ceros cada ronda tarda varios segundos.'),
+           ('Copia la tabla', 'a tu reporte, en Markdown o para hoja de cálculo.')],
+    tour=1, tour_titulo='Mide la dificultad', tour_texto='El cronómetro pone a competir a los cuatro escribanos varias veces con cada dificultad y saca el tiempo promedio. Así compruebas, con datos de este servidor, cuánto cuesta cada cero.') %}
+  <p>Mide cuánto tardan los cuatro escribanos en sellar un bloque con 3, 4 y 5 ceros. Cada {{ c.termino('ronda', 'ronda') }} corre en una cadena de práctica que se tira al terminar: <strong>la cadena real no se toca</strong>.</p>
+{% endcall %}
+
+<section class="tramo tramo--ajustado" aria-label="La medición">
+  <div class="envoltura crono">
+    <form class="panel crono__forma" id="crono" action="{{ url_for('cronometro_iniciar') }}" method="post" data-tour="2" data-tour-titulo="Prepara la medición" data-tour-texto="Más rondas dan un promedio más confiable, pero tardan más. Con 5 ceros cada ronda toma varios segundos; abajo ves el tiempo estimado total." data-explica="Cuántas rondas medir con cada dificultad, y el tiempo estimado." data-explica-titulo="La medición">
+      <h2 class="panel__titulo">Prepara <em>la medición</em></h2>
+      <div class="crono__rondas">
+        {%- for d in DIFICULTADES %}
+        <div class="campo crono__ronda" style="--i: {{ loop.index0 }}">
+          <label for="rondas-{{ d }}">{{ d }} ceros <span class="crono__prob">1 de cada {{ (16 ** d)|miles }}</span></label>
+          <input id="rondas-{{ d }}" name="rondas_{{ d }}" type="number" min="0" max="60" step="1" value="{{ plan.get(d, 0) }}" inputmode="numeric" data-dif="{{ d }}" aria-describedby="est-{{ d }}">
+          <p class="campo__ayuda" id="est-{{ d }}" data-c="est-{{ d }}">rondas</p>
+        </div>
+        {%- endfor %}
+      </div>
+      <p class="crono__total" data-c="total" aria-live="polite"></p>
+      <p class="nota">Pon 0 para saltarte una dificultad (máximo 60 rondas cada una). Mientras mide, nadie puede iniciar carreras reales.</p>
+      <div class="crono__botones">
+        <button type="submit" class="boton boton--oro requiere-js" data-c="iniciar">{{ c.icono('matraz') }} <span>Empezar la medición</span></button>
+        <button type="button" class="boton boton--secundario requiere-js" data-c="cancelar" hidden>Cancelar</button>
+      </div>
+      <p class="crono__error" role="alert" data-c="error" hidden></p>
+      <noscript><p class="crono__error">El cronómetro necesita JavaScript para lanzar las rondas y seguirlas en vivo. Abajo puedes ver los resultados de la última medición.</p></noscript>
+
+      <div class="crono__progreso" data-c="progreso" hidden>
+        <p class="crono__ahora"><span class="rotulo" data-c="ahora-rotulo">Midiendo</span> <strong data-c="ahora">—</strong></p>
+        <div class="ranuras crono__ranuras" data-c="ranuras" aria-hidden="true"></div>
+        <div class="crono__barra" role="progressbar" aria-label="Rondas medidas" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" data-c="barra"><span></span></div>
+        <p class="nota" data-c="cuenta"></p>
+      </div>
+    </form>
+
+    <section class="crono__resultados" aria-labelledby="res-titulo" data-tour="3" data-tour-titulo="Los resultados" data-tour-texto="Para cada dificultad: el tiempo promedio, los intentos que hicieron falta en promedio y los que predice la teoría (16 elevado al número de ceros). La gráfica usa escala logarítmica para que quepan los tres." data-explica="Tabla de tiempos promedio por dificultad, lista para copiar a tu reporte." data-explica-titulo="Resultados">
+      <header class="crono__res-cabeza">
+        <div class="pila" style="--pila: var(--e-2)">
+          <p class="ceja">Resultados</p>
+          <h2 class="tramo__titulo" id="res-titulo">Tiempo promedio <em>por dificultad.</em></h2>
+        </div>
+        <p class="crono__estado" data-c="estado" role="status">{% if estado.activo %}Midiendo…{% elif estado.terminado %}Última medición terminada.{% elif estado.cancelado %}La última medición se canceló: estos son resultados parciales.{% elif not res %}Todavía no hay mediciones.{% endif %}</p>
+      </header>
+      <div class="tabla-envoltura" tabindex="0" role="region" aria-labelledby="tabla-titulo">
+        <table class="tabla crono__tabla" id="crono-tabla">
+          <caption id="tabla-titulo" class="crono__caption">Rondas medidas en cadenas desechables, con los cuatro escribanos compitiendo como en una carrera real.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Dificultad</th>
+              <th scope="col" class="num">Rondas</th>
+              <th scope="col" class="num">Tiempo promedio</th>
+              <th scope="col" class="num">Mín – máx</th>
+              <th scope="col" class="num">Intentos medidos</th>
+              <th scope="col" class="num">Teóricos (16<sup>d</sup>)</th>
+              <th scope="col" class="num">Medido ÷ teórico</th>
+              <th scope="col" class="num">Velocidad (intentos/s)</th>
+            </tr>
+          </thead>
+          <tbody data-c="filas">
+            {{ filas_resultados(res) }}
+            {%- if not res %}
+            <tr class="crono__vacia"><td colspan="8">Cuando termine la primera ronda, aquí aparecerán los números.</td></tr>
+            {%- endif %}
+          </tbody>
+        </table>
+      </div>
+      <p class="crono__factor" data-c="factor" aria-live="polite"></p>
+      <figure class="crono__grafica requiere-js" data-c="grafica-caja"{% if not res %} hidden{% endif %}>
+        <div class="crono__lienzo" data-c="grafica"></div>
+        <figcaption class="nota">Intentos que hicieron falta en promedio (barra llena) frente a los que predice la teoría (contorno), en {{ c.termino('escala-log', 'escala logarítmica') }}: cada línea horizontal vale 10 veces la anterior. La tabla de arriba tiene los mismos datos.</figcaption>
+      </figure>
+      <div class="crono__copiar requiere-js">
+        <button type="button" class="boton boton--secundario boton--chico" data-c="copiar-md"><span data-copiar-etiqueta>Copiar tabla (Markdown)</span></button>
+        <button type="button" class="boton boton--secundario boton--chico" data-c="copiar-tsv"><span data-copiar-etiqueta>Copiar TSV (hoja de cálculo)</span></button>
+      </div>
+    </section>
+  </div>
+</section>
+
+<section class="tramo pergamino" aria-labelledby="por16-titulo">
+  <div class="envoltura">
+    <header class="tramo__cabeza">
+      <p class="ceja">Por qué cada cero cuesta tanto</p>
+      <h2 class="tramo__titulo" id="por16-titulo">Cada cero de más, <em>16 veces más trabajo.</em></h2>
+      <p class="tramo__intro">Una {{ c.termino('huella', 'huella') }} tiene 64 caracteres y cada uno puede ser cualquiera de estos 16 símbolos. Al calcular una huella nueva, cada carácter sale como al azar:</p>
+    </header>
+    <p class="hex16" role="img" aria-label="Los 16 símbolos posibles: del 0 al 9 y de la a a la f. Solo uno de ellos es el cero.">{% for ch in '0123456789abcdef' %}<span{% if loop.first %} class="es-cero"{% endif %}>{{ ch }}</span>{% endfor %}</p>
+    <div class="por16">
+      <div class="prosa por16__texto">
+        <p>Que el primer carácter sea cero pasa <strong>1 de cada 16 veces</strong>. Que los dos primeros lo sean tiene que pasar dos veces seguidas: 1/16 × 1/16 = <strong>1 de cada 256</strong>.</p>
+        <p>Cada cero que pides multiplica por 16 los intentos que hacen falta en promedio. Por eso, si la probabilidad de acertar en un intento con <em>d</em> ceros es</p>
+        <p class="por16__formula" role="math" aria-label="P de éxito igual a 1 entre 16 elevado a d">P(éxito) = <span class="por16__frac"><span>1</span><span>16<sup>d</sup></span></span></p>
+        <p>entonces, en promedio, se necesitan <strong>16<sup>d</sup> intentos</strong>: 4,096 con 3 ceros, 65,536 con 4 y 1,048,576 con 5. Compruébalo en tu tabla: el tiempo de cada fila debería ser unas 16 veces el de la anterior (la suerte lo mueve un poco).</p>
+      </div>
+      <ol class="zoom" role="list" aria-label="Cómo se achica la probabilidad con cada cero">
+        {%- for d in range(1, 6) %}
+        <li class="zoom__paso" data-revela style="--retraso: {{ loop.index0 }}">
+          <svg class="zoom__rejilla" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            {%- for k in range(16) %}<rect x="{{ (k % 4) * 10 + 0.6 }}" y="{{ (k // 4) * 10 + 0.6 }}" width="8.8" height="8.8" rx="1"{% if k == 3 %} class="es-cero"{% endif %}/>{% endfor %}
+          </svg>
+          <p class="zoom__ceros"><strong>{{ d }} {{ 'cero' if d == 1 else 'ceros' }}</strong><span class="mono">{{ '0' * d }}…</span></p>
+          <p class="zoom__prob">1 de cada <strong>{{ (16 ** d)|miles }}</strong></p>
+        </li>
+        {%- endfor %}
+      </ol>
+    </div>
+    <p class="nota por16__pie">Cada cuadro es una huella posible dividida en 16; la casilla dorada es la que empieza con cero. Al pedir un cero más, esa casilla se vuelve a dividir en 16, y así cada vez.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script defer src="{{ url_for('static', filename='js/cronometro.js') }}"></script>
+{% endblock %}
