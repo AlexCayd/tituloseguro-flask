@@ -1,0 +1,256 @@
+/* VISTA · Laboratorio de ataques — reglas (a)(b)(c)(d), catálogo de 13 ataques agrupados por
+   la regla que ponen a prueba, escena del resultado (fija a la derecha en pantallas anchas),
+   resumen de «Probar los 13» e historial. @layer vistas, acotado a la vista. */
+
+@import url("_bloque.css");
+
+@layer vistas {
+
+  .vista[data-vista="laboratorio"] .lab { display: grid; gap: var(--e-6); min-inline-size: 0; }
+
+  /* ================================================================ reglas */
+  .vista[data-vista="laboratorio"] .lab-reglas { display: grid; gap: var(--e-4); }
+  .vista[data-vista="laboratorio"] .lab-reglas__cabecera { display: grid; gap: var(--e-2); max-inline-size: 75ch; }
+  .vista[data-vista="laboratorio"] .lab-reglas__cabecera h2 { font-size: var(--t-xl); }
+  .vista[data-vista="laboratorio"] .lab-reglas__lista {
+    display: grid; gap: 1px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    background: var(--linea-suave);
+    border: 1px solid var(--linea-suave); border-radius: var(--r-3); overflow: hidden;
+  }
+  .vista[data-vista="laboratorio"] .lab-regla {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-3); align-items: start;
+    padding: var(--e-4);
+    background: var(--sup-1);
+  }
+  .vista[data-vista="laboratorio"] .lab-regla__letra {
+    display: grid; place-items: center;
+    inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--r-2);
+    font-family: var(--f-mono); font-size: var(--t-xl); font-weight: 700; line-height: 1;
+    color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .vista[data-vista="laboratorio"] .lab-regla__texto { display: grid; gap: var(--e-1); }
+  .vista[data-vista="laboratorio"] .lab-regla__texto h3 { font-size: var(--t-m); }
+  .vista[data-vista="laboratorio"] .lab-regla__texto p { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-regla__texto .lab-regla__ver { color: var(--texto-3); }
+  .vista[data-vista="laboratorio"] .lab-reglas__orden { font-size: var(--t-xs); }
+  @container vista (max-width: 1100px) { .vista[data-vista="laboratorio"] .lab-reglas__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @container vista (max-width: 520px) { .vista[data-vista="laboratorio"] .lab-reglas__lista { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ================================================================== mesa */
+  .vista[data-vista="laboratorio"] .lab-mesa { display: grid; gap: var(--e-5); grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; }
+  .vista[data-vista="laboratorio"] .lab-mesa__izq { display: grid; gap: var(--e-5); min-inline-size: 0; }
+  .vista[data-vista="laboratorio"] .lab-mesa__der { min-inline-size: 0; position: sticky; inset-block-start: calc(var(--alto-cabecera) + 3.5rem); }
+  @container vista (max-width: 860px) {
+    .vista[data-vista="laboratorio"] .lab-mesa { grid-template-columns: minmax(0, 1fr); }
+    .vista[data-vista="laboratorio"] .lab-mesa__der { position: static; }
+  }
+
+  /* mando */
+  .vista[data-vista="laboratorio"] .lab-mando__cuerpo { display: grid; gap: var(--e-4); }
+  .vista[data-vista="laboratorio"] .lab-mando__lecturas { display: flex; flex-wrap: wrap; gap: var(--e-3) var(--e-6); }
+  .vista[data-vista="laboratorio"] .lab-mando__lecturas .lectura__valor { overflow: visible; }
+  .vista[data-vista="laboratorio"] .lab-mando__lote { display: grid; gap: var(--e-2); padding-block-start: var(--e-4); border-block-start: 1px dashed var(--linea); }
+  .vista[data-vista="laboratorio"] .lab-lote__boton { justify-self: start; }
+
+  /* ============================================================== catálogo */
+  .vista[data-vista="laboratorio"] .lab-catalogo { display: grid; gap: var(--e-5); }
+  .vista[data-vista="laboratorio"] .lab-catalogo__titulo { font-size: var(--t-xl); }
+  .vista[data-vista="laboratorio"] .lab-grupo { display: grid; gap: var(--e-3); }
+  .vista[data-vista="laboratorio"] .lab-grupo__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-3); align-items: start; }
+  .vista[data-vista="laboratorio"] .lab-grupo__cabecera h3 { font-size: var(--t-l); }
+  .vista[data-vista="laboratorio"] .lab-grupo__cabecera p { font-size: var(--t-xs); }
+  .vista[data-vista="laboratorio"] .lab-grupo__cabecera .blq-regla { margin-block-start: 3px; }
+  .vista[data-vista="laboratorio"] .lab-grupo__bloque { padding: var(--e-3); background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-2); }
+  .vista[data-vista="laboratorio"] .lab-grupo__bloque .selector { max-inline-size: 16rem; }
+  .vista[data-vista="laboratorio"] .lab-grupo__lista { display: grid; gap: 1px; background: var(--linea-suave); border: 1px solid var(--linea-suave); border-radius: var(--r-3); overflow: hidden; }
+
+  .vista[data-vista="laboratorio"] .lab-ataque {
+    display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: var(--e-3); align-items: start;
+    padding: var(--e-3) var(--e-4);
+    background: var(--sup-1);
+    transition: background-color var(--dur-micro) var(--curva-func);
+  }
+  .vista[data-vista="laboratorio"] .lab-ataque:hover { background: var(--sup-2); }
+  .vista[data-vista="laboratorio"] .lab-ataque__num { font-size: var(--t-xs); color: var(--texto-3); padding-block-start: 3px; }
+  .vista[data-vista="laboratorio"] .lab-ataque__texto { display: grid; gap: 2px; min-inline-size: 0; }
+  .vista[data-vista="laboratorio"] .lab-ataque__texto h4 { font-size: var(--t-m); }
+  .vista[data-vista="laboratorio"] .lab-ataque__texto > p { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-ataque__texto .lab-ataque__espera { color: var(--texto-3); }
+  /* la historia (credenciales) manda; lo que viaja de verdad por la red va debajo, en voz baja */
+  .vista[data-vista="laboratorio"] .lab-ataque__tecnico { font-size: var(--t-xs); color: var(--texto-3); }
+  .vista[data-vista="laboratorio"] .lab-ataque__en-cadena { font-family: var(--f-mono); font-size: var(--t-2xs); letter-spacing: 0.04em; text-transform: uppercase; color: var(--texto-3); }
+  .vista[data-vista="laboratorio"] .lab-escena__cabecera > .lab-ataque__tecnico { margin-block-start: var(--e-1); }
+  .vista[data-vista="laboratorio"] .lab-mando__nombre { margin-block-start: var(--e-1); font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-mando__nombre:empty { display: none; }
+  .vista[data-vista="laboratorio"] .lab-ataque__espera code { color: var(--acento-texto); }
+  .vista[data-vista="laboratorio"] .lab-ataque__requiere { display: flex; gap: var(--e-1); align-items: center; color: var(--advertencia); }
+  .vista[data-vista="laboratorio"] .lab-ataque__requiere .icono { --tam-icono: 0.9rem; }
+  .vista[data-vista="laboratorio"] .lab-ataque__acciones { display: grid; gap: var(--e-1); justify-items: end; }
+  .vista[data-vista="laboratorio"] .lab-ataque__lanzar { min-block-size: var(--objetivo); padding-inline: var(--e-3); }
+  .vista[data-vista="laboratorio"] .lab-ataque__marca { display: inline-flex; align-items: center; gap: 3px; font-size: var(--t-2xs); font-weight: 650; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+  .vista[data-vista="laboratorio"] .lab-ataque__marca .icono { --tam-icono: 0.85rem; }
+  .vista[data-vista="laboratorio"] .lab-ataque__marca[data-estado="rechazado"] { color: var(--valido); }
+  .vista[data-vista="laboratorio"] .lab-ataque__marca[data-estado="aceptado"] { color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-ataque__marca[data-estado="error"] { color: var(--advertencia); }
+  /* ya probado: el lomo de la tarjeta lo dice (además del texto) */
+  .vista[data-vista="laboratorio"] .lab-ataque[data-ultimo="rechazado"] { box-shadow: inset 3px 0 0 var(--valido); }
+  .vista[data-vista="laboratorio"] .lab-ataque[data-ultimo="aceptado"] { box-shadow: inset 3px 0 0 var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-ataque[data-ultimo="error"] { box-shadow: inset 3px 0 0 var(--advertencia); }
+  @container vista (max-width: 460px) {
+    .vista[data-vista="laboratorio"] .lab-ataque { grid-template-columns: 1.5rem minmax(0, 1fr); }
+    .vista[data-vista="laboratorio"] .lab-ataque__acciones { grid-column: 2; justify-items: start; grid-auto-flow: column; align-items: center; gap: var(--e-3); }
+  }
+
+  /* ================================================================ escena */
+  .vista[data-vista="laboratorio"] .lab-escena {
+    padding: var(--e-5);
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-3);
+    box-shadow: var(--sombra-2);
+    max-block-size: calc(100dvh - var(--alto-cabecera) - 5rem);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .vista[data-vista="laboratorio"] .lab-escena:focus { outline: none; }
+  .vista[data-vista="laboratorio"] .lab-escena:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  @container vista (max-width: 860px) {
+    .vista[data-vista="laboratorio"] .lab-escena { max-block-size: none; overflow: visible; scroll-margin-block-start: calc(var(--alto-cabecera) + 3.5rem); }
+  }
+  .vista[data-vista="laboratorio"] .lab-escena__vacia { display: grid; justify-items: center; text-align: center; gap: var(--e-3); padding: var(--e-6) var(--e-4); color: var(--texto-2); font-size: var(--t-s); }
+  .vista[data-vista="laboratorio"] .lab-escena__vacia h3 { color: var(--texto); }
+  .vista[data-vista="laboratorio"] .lab-escena__vacia p { max-inline-size: 42ch; }
+  .vista[data-vista="laboratorio"] .lab-escena__caja { display: grid; gap: var(--e-4); }
+  .vista[data-vista="laboratorio"] .lab-escena__cabecera { display: grid; gap: 2px; }
+  .vista[data-vista="laboratorio"] .lab-escena__titulo { font-size: var(--t-xl); }
+  .vista[data-vista="laboratorio"] .lab-escena__cabecera > .texto-2 { font-size: var(--t-s); }
+  .vista[data-vista="laboratorio"] .lab-escena__bloque { display: grid; gap: var(--e-2); }
+  .vista[data-vista="laboratorio"] .lab-escena__explica { display: flex; gap: var(--e-2); align-items: start; font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-escena__explica .icono { color: var(--texto-3); margin-block-start: 2px; }
+
+  /* el veredicto: RECHAZADA es una buena noticia (la defensa funcionó) */
+  .vista[data-vista="laboratorio"] .lab-veredicto {
+    --v: var(--valido);
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4); align-items: center;
+    padding: var(--e-4);
+    background: color-mix(in oklab, var(--v) 8%, var(--fondo));
+    border: 1px solid color-mix(in oklab, var(--v) 40%, transparent);
+    border-radius: var(--r-3);
+  }
+  .vista[data-vista="laboratorio"] .lab-veredicto[data-aceptada="si"] { --v: var(--rechazado); border-width: 2px; }
+  .vista[data-vista="laboratorio"] .lab-veredicto__icono {
+    --tam-icono: 1.75rem;
+    display: grid; place-items: center; inline-size: 3.25rem; block-size: 3.25rem; border-radius: 50%;
+    color: var(--v); background: color-mix(in oklab, var(--v) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--v) 45%, transparent);
+  }
+  .vista[data-vista="laboratorio"] .lab-veredicto__palabra {
+    font-family: var(--f-titular); font-size: var(--t-2xl); font-weight: 700; letter-spacing: 0.04em; line-height: 1;
+    color: var(--v);
+  }
+  .vista[data-vista="laboratorio"] .lab-veredicto__motivo { margin-block-start: var(--e-1); font-size: var(--t-s); color: var(--texto); }
+  .vista[data-vista="laboratorio"] .lab-veredicto__grito { margin-block-start: var(--e-1); font-size: var(--t-s); font-weight: 650; color: var(--rechazado); }
+
+  /* el duelo: cadena propia frente a cadena atacante */
+  .vista[data-vista="laboratorio"] .lab-duelo {
+    --n: 12;
+    margin: 0; display: grid; gap: var(--e-2);
+    padding: var(--e-3) var(--e-4);
+    background: var(--fondo); border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+  }
+  .vista[data-vista="laboratorio"] .lab-duelo__titulo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-2); align-items: baseline; }
+  .vista[data-vista="laboratorio"] .lab-duelo__lado { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-duelo__lado[data-mas="no"] { color: var(--advertencia); }
+  .vista[data-vista="laboratorio"] .lab-duelo__fila { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 2rem; gap: var(--e-3); align-items: center; }
+  .vista[data-vista="laboratorio"] .lab-duelo__nombre { display: grid; font-size: var(--t-s); font-weight: 650; line-height: 1.2; }
+  .vista[data-vista="laboratorio"] .lab-duelo__nombre small { font-weight: 400; color: var(--texto-3); font-size: var(--t-2xs); }
+  .vista[data-vista="laboratorio"] .lab-duelo__cuenta { font-size: var(--t-s); text-align: end; color: var(--texto-2); }
+  /* misma escala en las dos filas: n columnas, cada fila ocupa las suyas */
+  .vista[data-vista="laboratorio"] .lab-duelo__celdas { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 3px; }
+  .vista[data-vista="laboratorio"] .lab-celda {
+    display: block; block-size: 1.375rem; min-inline-size: 3px;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--valido) 55%, var(--sup-3));
+  }
+  .vista[data-vista="laboratorio"] .lab-celda[data-estado="propia"] { background: color-mix(in oklab, var(--acento) 45%, var(--sup-3)); }
+  .vista[data-vista="laboratorio"] .lab-celda[data-estado="invalido"] {
+    background: repeating-linear-gradient(135deg, var(--rechazado) 0 3px, color-mix(in oklab, var(--rechazado) 25%, transparent) 3px 6px);
+    box-shadow: inset 0 0 0 1px var(--rechazado);
+  }
+  .vista[data-vista="laboratorio"] .lab-celda[data-estado="sin-evaluar"] { background: transparent; box-shadow: inset 0 0 0 1px var(--obsoleto); }
+  .vista[data-vista="laboratorio"] .lab-celda[data-objetivo="si"] { outline: 2px solid var(--texto); outline-offset: 1px; }
+  .vista[data-vista="laboratorio"] .lab-duelo__leyenda { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-4); font-size: var(--t-2xs); color: var(--texto-3); margin-block-start: var(--e-1); }
+  .vista[data-vista="laboratorio"] .lab-duelo__leyenda li { display: inline-flex; align-items: center; gap: var(--e-1); }
+  .vista[data-vista="laboratorio"] .lab-duelo__leyenda .lab-celda { inline-size: 0.75rem; block-size: 0.75rem; }
+
+  /* reglas evaluadas */
+  .vista[data-vista="laboratorio"] .lab-reglas-fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); }
+  .vista[data-vista="laboratorio"] .lab-reglas-fila__item { display: grid; gap: 2px; justify-items: start; padding: var(--e-2); border-radius: var(--r-2); border: 1px solid transparent; }
+  .vista[data-vista="laboratorio"] .lab-reglas-fila__item[data-esperada="si"] { border-color: var(--acento-borde); background: var(--acento-tenue); }
+  .vista[data-vista="laboratorio"] .lab-reglas-fila__nota { font-size: var(--t-2xs); color: var(--acento-texto); font-weight: 600; }
+  .vista[data-vista="laboratorio"] .lab-reglas-fila .blq-regla { white-space: normal; }
+  .vista[data-vista="laboratorio"] .lab-deteccion { display: flex; gap: var(--e-2); align-items: start; font-size: var(--t-s); }
+  .vista[data-vista="laboratorio"] .lab-deteccion > .icono { margin-block-start: 2px; }
+  .vista[data-vista="laboratorio"] .lab-deteccion[data-ok="si"] > .icono { color: var(--valido); }
+  .vista[data-vista="laboratorio"] .lab-deteccion[data-ok="no"] > .icono { color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-deteccion code { color: var(--acento-texto); }
+
+  .vista[data-vista="laboratorio"] .lab-intacta {
+    display: flex; gap: var(--e-2); align-items: center; flex-wrap: wrap;
+    padding: var(--e-3) var(--e-4);
+    font-size: var(--t-s);
+    background: color-mix(in oklab, var(--valido) 7%, var(--fondo));
+    border: 1px dashed color-mix(in oklab, var(--valido) 40%, transparent);
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="laboratorio"] .lab-intacta > .icono { color: var(--valido); }
+  .vista[data-vista="laboratorio"] .lab-intacta[data-ok="no"] { background: color-mix(in oklab, var(--rechazado) 10%, var(--fondo)); border-color: var(--rechazado); border-style: solid; }
+  .vista[data-vista="laboratorio"] .lab-intacta[data-ok="no"] > .icono { color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-escena .blq-problemas { max-block-size: 16rem; }
+
+  /* ================================================================== lote */
+  .vista[data-vista="laboratorio"] .lab-lote,
+  .vista[data-vista="laboratorio"] .lab-historial { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .vista[data-vista="laboratorio"] .lab-lote__cabecera,
+  .vista[data-vista="laboratorio"] .lab-historial__cabecera { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: var(--e-2) var(--e-4); }
+  .vista[data-vista="laboratorio"] .lab-lote__cabecera h2,
+  .vista[data-vista="laboratorio"] .lab-historial__cabecera h2 { font-size: var(--t-xl); }
+  .vista[data-vista="laboratorio"] .lab-lote__cabecera .medidor { flex: 0 1 14rem; align-self: center; }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen {
+    display: flex; gap: var(--e-3); align-items: start;
+    padding: var(--e-3) var(--e-4);
+    font-size: var(--t-s);
+    background: color-mix(in oklab, var(--valido) 8%, var(--sup-1));
+    border: 1px solid color-mix(in oklab, var(--valido) 40%, transparent);
+    border-inline-start: 3px solid var(--valido);
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen > .icono { color: var(--valido); margin-block-start: 2px; }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen[data-ok="no"] { --x: var(--rechazado); background: color-mix(in oklab, var(--rechazado) 10%, var(--sup-1)); border-color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen[data-ok="no"] > .icono { color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen:focus { outline: none; }
+  .vista[data-vista="laboratorio"] .lab-lote__resumen:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+  .vista[data-vista="laboratorio"] .lab-tabla th[scope="row"] { font-weight: 600; white-space: nowrap; }
+  .vista[data-vista="laboratorio"] .lab-tabla td { white-space: nowrap; }
+  .vista[data-vista="laboratorio"] .lab-tabla code { font-size: var(--t-xs); }
+  .vista[data-vista="laboratorio"] .lab-tabla td.lab-tabla__codigos { white-space: normal; min-inline-size: 12rem; }
+  .vista[data-vista="laboratorio"] .lab-tabla__codigos code { color: var(--texto-2); }
+  .vista[data-vista="laboratorio"] .lab-tabla tr[data-estado="pendiente"] { opacity: 0.55; }
+  .vista[data-vista="laboratorio"] .lab-tabla tr[data-estado="curso"] { background: var(--acento-tenue); }
+  .vista[data-vista="laboratorio"] .lab-tabla tr[data-estado="aceptada"] { background: color-mix(in oklab, var(--rechazado) 14%, transparent); }
+  .vista[data-vista="laboratorio"] .lab-si { display: inline-flex; align-items: center; gap: 3px; font-weight: 650; font-size: var(--t-s); }
+  .vista[data-vista="laboratorio"] .lab-si .icono { --tam-icono: 0.95rem; }
+  .vista[data-vista="laboratorio"] .lab-si[data-ok="si"] { color: var(--valido); }
+  .vista[data-vista="laboratorio"] .lab-si[data-ok="no"] { color: var(--rechazado); }
+  .vista[data-vista="laboratorio"] .lab-si[data-ok="aviso"] { color: var(--advertencia); font-weight: 500; }
+  .vista[data-vista="laboratorio"] .lab-historial__marco { max-block-size: 26rem; overflow-y: auto; }
+}
+
+/* ===== el anillo (fuera de la vista): víctima en el punto de mira y el paquete que rebota ===== */
+@layer vistas {
+  .nodo.lab-objetivo .nodo__rol { stroke: var(--rechazado); stroke-width: 2; stroke-dasharray: 3 4; animation: none; }
+  .lab-paquete__cuerpo { fill: color-mix(in oklab, var(--rechazado) 30%, var(--sup-2)); stroke: var(--rechazado); stroke-width: 1.6; }
+  .lab-paquete__grieta { fill: none; stroke: var(--rechazado); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .lab-escudo { fill: none; stroke: var(--valido); stroke-dasharray: 18 6; }
+}

@@ -1,0 +1,136 @@
+/* PIEZAS COMPARTIDAS · arena, escenario, explorador de cadena y laboratorio
+   (static/js/vistas/_bloque_ui.js). No es la hoja de una vista: la importan pow_arena.css,
+   pos_escenario.css, cadena.css y laboratorio.css dentro de la capa «vistas». */
+
+@layer vistas {
+
+  /* ---------------------------------------------------- marca de institución
+     La sigla es la voz (se lee en 390 px aunque sean 20 instituciones); el id técnico la
+     acompaña en mono pequeño; el nombre completo vive en title / texto accesible. */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"], .vista[data-vista="pow_arena"], .vista[data-vista="pos_escenario"]) .blq-inst {
+    display: inline-flex; align-items: baseline; gap: 0.38em;
+    min-inline-size: 0; max-inline-size: 100%;
+    white-space: nowrap; vertical-align: baseline;
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"], .vista[data-vista="pow_arena"], .vista[data-vista="pos_escenario"]) .blq-inst__sigla {
+    font-family: var(--f-titular); font-weight: 650; letter-spacing: 0.01em; color: inherit;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"], .vista[data-vista="pow_arena"], .vista[data-vista="pos_escenario"]) .blq-inst__id {
+    font-family: var(--f-mono); font-size: 0.72em; font-weight: 500; letter-spacing: 0.02em;
+    color: var(--texto-3);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"], .vista[data-vista="pow_arena"], .vista[data-vista="pos_escenario"]) .blq-inst__nombre {
+    font-family: var(--f-texto); font-size: 0.8em; font-weight: 400; color: var(--texto-2);
+    white-space: normal;
+  }
+
+  /* ------------------------------------------------------- huella compacta */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hash {
+    font-family: var(--f-mono); font-variant-ligatures: none; white-space: nowrap;
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hash__ceros { color: var(--acento-texto); font-weight: 700; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hash__elipsis { color: var(--texto-3); }
+
+  /* ---------------------------------------- huella completa con diferencias */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hex {
+    display: inline-flex; flex-wrap: wrap; gap: 0 0.55ch;
+    font-family: var(--f-mono); font-size: var(--t-xs); line-height: 1.7;
+    font-variant-ligatures: none; color: var(--texto-2);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hex__grupo { white-space: nowrap; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-hex .blq-hash__ceros { color: var(--acento-texto); }
+  /* lo que difiere: fondo + subrayado (no solo color) */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-dif {
+    color: var(--rechazado); font-weight: 700;
+    background: color-mix(in oklab, var(--rechazado) 18%, transparent);
+    border-radius: 2px;
+    text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  }
+
+  /* -------------------------------------------------------------- eslabón */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+    flex: none;
+    color: color-mix(in oklab, var(--acento) 60%, var(--linea-fuerte));
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon__svg { inline-size: 2.75rem; block-size: 1.375rem; overflow: visible; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon rect {
+    fill: none; stroke: currentColor; stroke-width: 2.2;
+    transform-box: fill-box; transform-origin: center;
+    transition: transform var(--dur-escena) var(--curva-firma), stroke var(--dur-entrada) var(--curva-func);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon__chispa {
+    fill: none; stroke: var(--rechazado); stroke-width: 1.6; stroke-linecap: round;
+    opacity: 0; transition: opacity var(--dur-entrada) var(--curva-func);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon__cola {
+    font-size: var(--t-2xs); color: var(--texto-3); line-height: 1;
+  }
+  /* roto: las anillas se separan (forma) y se tiñen (color) */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="si"] { color: var(--rechazado); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="si"] .blq-eslabon__a { transform: translate(-3px, -1px) rotate(-14deg); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="si"] .blq-eslabon__b { transform: translate(6px, 3px) rotate(24deg); stroke-dasharray: 4 2.5; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="si"] .blq-eslabon__chispa { opacity: 1; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="si"] .blq-eslabon__cola { color: var(--rechazado); text-decoration: line-through; }
+  /* sello falso: encaja con una huella que ya no corresponde a su contenido */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="sello"] { color: var(--advertencia); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="sello"] rect { stroke-dasharray: 3 2.5; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon[data-roto="sello"] .blq-eslabon__cola { color: var(--advertencia); }
+  @media (prefers-reduced-motion: reduce) {
+    :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-eslabon rect { transition: stroke var(--dur-micro) linear; }
+  }
+
+  /* ---------------------------------------------------------- chip de regla */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla {
+    --r: var(--texto-3);
+    display: inline-flex; align-items: center; gap: 0.35em;
+    min-block-size: 1.5rem; padding: 0 0.45em 0 0.2em;
+    font-size: var(--t-xs); font-weight: 600; color: var(--r);
+    background: color-mix(in oklab, var(--r) 10%, transparent);
+    border: 1px solid color-mix(in oklab, var(--r) 35%, transparent);
+    border-radius: var(--r-pildora);
+    white-space: nowrap; vertical-align: middle;
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla__letra {
+    display: inline-grid; place-items: center;
+    inline-size: 1.15rem; block-size: 1.15rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-2xs); font-weight: 700;
+    color: var(--tinta-oscura); background: var(--r);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla__marca { --tam-icono: 0.85rem; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla[data-estado="viola"] { --r: var(--rechazado); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla[data-estado="cumple"] { --r: var(--valido); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla[data-estado="esperada"] { --r: var(--acento); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla[data-estado="sin-evaluar"] { --r: var(--obsoleto); border-style: dashed; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-regla[data-estado="sin-evaluar"] .blq-regla__letra { background: transparent; color: var(--obsoleto); box-shadow: inset 0 0 0 1px var(--obsoleto); }
+
+  /* ------------------------------------------------------ lista de problemas */
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas {
+    display: grid; gap: 2px;
+    max-block-size: 22rem; overflow-y: auto; overscroll-behavior: contain;
+    padding-inline-end: 2px;
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__item {
+    inline-size: 100%;
+    display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; gap: var(--e-3); align-items: start;
+    min-block-size: var(--objetivo);
+    padding: var(--e-2) var(--e-3);
+    text-align: start;
+    background: color-mix(in oklab, var(--sup-2) 80%, transparent);
+    border-radius: var(--r-2);
+    border-inline-start: 2px solid color-mix(in oklab, var(--rechazado) 60%, transparent);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) button.blq-problemas__item { transition: background-color var(--dur-micro) var(--curva-func); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) button.blq-problemas__item:hover { background: var(--sup-3); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__bloque {
+    font-family: var(--f-titular); font-size: var(--t-m); font-weight: 650; color: var(--texto);
+  }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__texto { display: grid; gap: 2px; min-inline-size: 0; font-size: var(--t-s); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__codigo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__codigo code { font-size: var(--t-xs); color: var(--rechazado); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__sencillo { color: var(--texto); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__servidor { color: var(--texto-3); font-size: var(--t-xs); }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) .blq-problemas__ir { color: var(--texto-3); margin-block-start: 0.3rem; }
+  :is(.vista[data-vista="cadena"], .vista[data-vista="laboratorio"]) button.blq-problemas__item:hover .blq-problemas__ir { color: var(--acento-texto); }
+}

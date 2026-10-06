@@ -1,0 +1,138 @@
+/* =============================================================================
+   TÍTULO SEGURO · tokens
+   -----------------------------------------------------------------------------
+   Este archivo se carga PRIMERO: declara el orden de capas para toda la app.
+   Cualquier hoja posterior (incluidas las de vistas) escribe dentro de una capa:
+
+     reset → tokens → base → disposicion → componentes → vistas → utilidades
+
+   Color en OKLCH. Nunca escribas un color suelto en una vista: usa estos tokens
+   o deriva con color-mix(in oklab, var(--token) X%, transparent).
+   ============================================================================= */
+
+@layer reset, tokens, base, disposicion, componentes, vistas, utilidades;
+
+/* ---------------------------------------------------------------- fuentes */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("../fonts/bricolage-grotesque-vf.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-vf.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-vf-italic.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/jetbrains-mono-vf.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@layer tokens {
+  :root {
+    color-scheme: dark;
+
+    /* ---- tipografía ---------------------------------------------------- */
+    --f-titular: "Bricolage Grotesque", "Avenir Next", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    --f-texto: "Instrument Sans", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+    --f-mono: "JetBrains Mono", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+    /* escala fluida (≈1.2 en interfaz; los titulares suben más rápido) */
+    --t-2xs: 0.6875rem;                                   /* 11 — etiquetas de instrumento */
+    --t-xs: 0.75rem;                                      /* 12 */
+    --t-s: 0.875rem;                                      /* 14 */
+    --t-m: 1rem;                                          /* 16 — texto base */
+    --t-l: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);     /* 17–19 */
+    --t-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);       /* 20–24 */
+    --t-2xl: clamp(1.5rem, 1.2rem + 1.2vw, 2.125rem);     /* 24–34 — título de vista */
+    --t-3xl: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);        /* cifras protagonistas */
+
+    --lh-ajustado: 1.1;
+    --lh-titulo: 1.2;
+    --lh-texto: 1.55;
+    --tracking-etiqueta: 0.08em;
+
+    /* ---- superficies (grafito azulado, de lo más hondo a lo más alto) ---- */
+    --fondo: oklch(0.155 0.012 255);
+    --sup-1: oklch(0.185 0.013 255);
+    --sup-2: oklch(0.215 0.014 255);
+    --sup-3: oklch(0.255 0.015 255);
+    --sup-4: oklch(0.30 0.016 255);
+    --linea: oklch(0.34 0.014 255);
+    --linea-suave: oklch(0.27 0.013 255);
+    --linea-fuerte: oklch(0.46 0.016 255);
+    --reticula: oklch(0.9 0.02 255 / 0.035);
+
+    /* ---- texto (contraste medido sobre --sup-1) ------------------------- */
+    --texto: oklch(0.95 0.006 255);         /* ≈ 15:1 */
+    --texto-2: oklch(0.80 0.012 255);       /* ≈ 9:1  */
+    --texto-3: oklch(0.68 0.014 255);       /* ≈ 5.6:1 — mínimo para texto pequeño */
+    --tinta-oscura: oklch(0.17 0.02 255);   /* texto SOBRE acentos claros */
+
+    /* ---- acentos por modo ------------------------------------------------ */
+    --pow: oklch(0.79 0.155 62);            /* ámbar: el calor del cómputo */
+    --pos: oklch(0.81 0.12 192);            /* cian: el capital apostado   */
+    --acento: var(--pow);                   /* lo fija body[data-modo] */
+
+    /* ---- estados semánticos (iguales en ambos modos) -------------------- */
+    --valido: oklch(0.80 0.16 148);         /* aceptado, firma correcta, sincronizado */
+    --rechazado: oklch(0.70 0.19 24);       /* rechazado, inválido, castigo           */
+    --pendiente: oklch(0.80 0.10 255);      /* en espera, por madurar                 */
+    --obsoleto: oklch(0.64 0.02 255);       /* superado, descartado                   */
+    --advertencia: oklch(0.87 0.15 98);     /* atención, límite, desfasado            */
+    --info: var(--texto-2);
+
+    /* ---- espacio (escala de 4) ------------------------------------------ */
+    --e-1: 0.25rem;  --e-2: 0.5rem;  --e-3: 0.75rem;  --e-4: 1rem;
+    --e-5: 1.5rem;   --e-6: 2rem;    --e-7: 3rem;     --e-8: 4rem;
+
+    /* ---- radios: instrumento, no juguete -------------------------------- */
+    --r-1: 3px;  --r-2: 6px;  --r-3: 10px;  --r-pildora: 999px;
+
+    /* ---- profundidad: hairlines y brillos contenidos --------------------- */
+    --sombra-1: 0 1px 0 oklch(1 0 0 / 0.03) inset, 0 1px 2px oklch(0 0 0 / 0.35);
+    --sombra-2: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 32px -12px oklch(0 0 0 / 0.6);
+    --sombra-3: 0 24px 64px -16px oklch(0 0 0 / 0.75), 0 0 0 1px var(--linea);
+
+    /* ---- movimiento (ver util/anim.js: mismos valores en JS) ------------- */
+    --dur-micro: 160ms;
+    --dur-entrada: 280ms;
+    --dur-escena: 480ms;
+    --curva-firma: cubic-bezier(0.2, 0.8, 0.2, 1);   /* expresiva: entradas, difusión */
+    --curva-func: cubic-bezier(0.33, 1, 0.68, 1);    /* funcional: hover, toggles    */
+    --curva-salida: cubic-bezier(0.4, 0, 1, 1);
+
+    /* ---- disposición ----------------------------------------------------- */
+    --alto-cabecera: 4.25rem;
+    --ancho-max: 1720px;
+    --objetivo: 2.5rem;                    /* 40px: objetivo táctil mínimo */
+
+    /* ---- capas de apilamiento ------------------------------------------- */
+    --z-pegajoso: 10;
+    --z-cabecera: 20;
+    --z-flotante: 40;
+    --z-toast: 60;
+  }
+
+  /* El acento del modo y sus derivados. Cambiar body[data-modo] recolorea todo. */
+  body[data-modo="pow"] { --acento: var(--pow); }
+  body[data-modo="pos"] { --acento: var(--pos); }
+  body {
+    --acento-texto: var(--acento);                                           /* AA sobre todas las superficies */
+    --acento-tenue: color-mix(in oklab, var(--acento) 14%, transparent);
+    --acento-borde: color-mix(in oklab, var(--acento) 45%, var(--linea));
+    --acento-brillo: 0 0 0 1px color-mix(in oklab, var(--acento) 55%, transparent),
+                     0 0 28px -6px color-mix(in oklab, var(--acento) 45%, transparent);
+  }
+}

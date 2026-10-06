@@ -1,0 +1,625 @@
+/* VISTA · Arena de minería (Proof of Work)
+   «La carrera es de suerte, no de velocidad»: cada carril muestra la última huella de su
+   minero como casillas, con el OBJETIVO (d ceros) enmarcado. Responde a su contenedor (vista).
+   Todo acotado a .vista[data-vista="pow_arena"]; las únicas reglas fuera de ese ámbito son
+   las clases que la arena pone en el anillo (.nodo.arena-lider), como indica el LEEME.
+   Dominio «Título Seguro»: cada minero es una INSTITUCIÓN (sigla + id) y la recompensa son
+   créditos de certificación (CC). La marca de institución vive en _bloque.css. */
+
+@import url("_bloque.css");
+
+@layer vistas {
+
+  .vista[data-vista="pow_arena"] .arena { position: relative; display: grid; gap: var(--e-5); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-cabeza {
+    display: grid; gap: var(--e-5); align-items: start;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  }
+  @container vista (max-width: 860px) {
+    .vista[data-vista="pow_arena"] .arena-cabeza { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* --------------------------------------------------------------- mesa */
+  .vista[data-vista="pow_arena"] .arena-mesa__cuerpo { display: grid; gap: var(--e-4); }
+  .vista[data-vista="pow_arena"] .arena-mesa__siguiente {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0 var(--e-4);
+  }
+  .vista[data-vista="pow_arena"] .arena-mesa__siguiente > .etiqueta-instrumento { grid-column: 1 / -1; }
+  .vista[data-vista="pow_arena"] .arena-mesa__bloque {
+    font-family: var(--f-titular); font-size: var(--t-3xl); font-weight: 650; line-height: 1;
+    letter-spacing: -0.035em; color: var(--acento-texto); font-variant-numeric: tabular-nums;
+  }
+  .vista[data-vista="pow_arena"] .arena-mesa__resumen { font-size: var(--t-s); color: var(--texto-2); text-wrap: pretty; }
+  .vista[data-vista="pow_arena"] .arena-mesa__tx { color: var(--texto); font-weight: 600; }
+  .vista[data-vista="pow_arena"] .arena-mesa__param { color: var(--texto-3); }
+
+  /* la fila de acciones reserva su alto: alternar botones no empuja nada */
+  .vista[data-vista="pow_arena"] .arena-mesa__acciones {
+    display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center;
+    min-block-size: var(--objetivo);
+  }
+  .vista[data-vista="pow_arena"] .arena-mesa__grupo { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-mesa .boton[aria-disabled="true"] { opacity: 0.55; }
+
+  .vista[data-vista="pow_arena"] .arena-motivo {
+    --m: var(--linea-fuerte);
+    display: flex; gap: var(--e-2); align-items: start;
+    padding: var(--e-2) var(--e-3);
+    font-size: var(--t-xs); line-height: 1.5; color: var(--texto-2);
+    background: var(--fondo);
+    border-inline-start: 2px solid var(--m);
+    border-radius: 0 var(--r-1) var(--r-1) 0;
+  }
+  .vista[data-vista="pow_arena"] .arena-motivo > .icono { color: var(--m); margin-block-start: 0.1em; }
+  .vista[data-vista="pow_arena"] .arena-motivo[data-nivel="aviso"] { --m: var(--advertencia); color: var(--texto); }
+
+  .vista[data-vista="pow_arena"] .arena-sin-tx {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-3); align-items: start;
+    padding: var(--e-3) var(--e-4);
+    border: 1px dashed var(--acento-borde); border-radius: var(--r-2);
+    background: color-mix(in oklab, var(--acento) 5%, transparent);
+    font-size: var(--t-s);
+  }
+  .vista[data-vista="pow_arena"] .arena-sin-tx__icono {
+    display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 50%;
+    color: var(--acento-texto); background: var(--acento-tenue);
+  }
+  .vista[data-vista="pow_arena"] .arena-sin-tx__texto { display: grid; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-sin-tx .grupo { font-size: var(--t-xs); }
+
+  .vista[data-vista="pow_arena"] .arena-auto {
+    display: grid; gap: var(--e-2);
+    padding-block-start: var(--e-3);
+    border-block-start: 1px dashed var(--linea);
+  }
+  .vista[data-vista="pow_arena"] .arena-auto__cabeza { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); font-size: var(--t-s); }
+  .vista[data-vista="pow_arena"] .arena-auto__cabeza > .icono { color: var(--advertencia); }
+  .vista[data-vista="pow_arena"] .arena-auto .entrada { max-inline-size: 6rem; }
+
+  /* ----------------------------------------------------------- marcador */
+  .vista[data-vista="pow_arena"] .arena-marcador__cuerpo { display: grid; gap: var(--e-3); }
+  .vista[data-vista="pow_arena"] .arena-marcador__titulo { font-family: var(--f-titular); font-weight: 600; font-size: var(--t-l); line-height: 1.2; }
+  .vista[data-vista="pow_arena"] .arena-marcador__ronda {
+    display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: var(--e-1) var(--e-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-marcador__ronda .medidor { grid-column: 1 / -1; }
+  .vista[data-vista="pow_arena"] .arena-marcador__ronda-txt { justify-self: end; font-size: var(--t-s); }
+  .vista[data-vista="pow_arena"] .arena-marcador__lecturas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vista[data-vista="pow_arena"] .arena-marcador__lecturas .lectura__etiqueta,
+  .vista[data-vista="pow_arena"] .arena-marcador__lecturas .lectura__valor { white-space: normal; overflow-wrap: anywhere; }
+  .vista[data-vista="pow_arena"] .arena-marcador__nota { font-size: var(--t-xs); color: var(--texto-3); text-wrap: pretty; }
+  .vista[data-vista="pow_arena"] .arena-marcador__auto {
+    font-size: var(--t-xs); font-weight: 600; color: var(--advertencia);
+    padding: var(--e-1) var(--e-3); border: 1px dashed color-mix(in oklab, var(--advertencia) 45%, transparent); border-radius: var(--r-pildora);
+    justify-self: start;
+  }
+
+  /* intentos del equipo frente a los esperados: la marca central es «la media» */
+  .vista[data-vista="pow_arena"] .arena-esperado {
+    --valor: 0;
+    position: relative;
+    block-size: 8px; margin-block-start: 1.1rem;
+    background: var(--sup-3); border-radius: var(--r-pildora);
+  }
+  .vista[data-vista="pow_arena"] .arena-esperado::before {
+    content: ""; position: absolute; inset: 0;
+    background: var(--acento); border-radius: inherit;
+    transform-origin: left center; transform: scaleX(var(--valor));
+    transition: transform var(--dur-entrada) var(--curva-func);
+  }
+  .vista[data-vista="pow_arena"] .arena-esperado[data-estado="excede"]::before { background: var(--advertencia); }
+  .vista[data-vista="pow_arena"] .arena-esperado__marca {
+    position: absolute; inset-block: -4px; inset-inline-start: 50%;
+    border-inline-start: 2px solid var(--texto-2);
+  }
+  .vista[data-vista="pow_arena"] .arena-esperado__marca span {
+    position: absolute; inset-block-end: calc(100% + 2px); inset-inline-start: 0; translate: -50% 0;
+    font-size: var(--t-2xs); color: var(--texto-2); white-space: nowrap;
+  }
+
+  /* ---------------------------------------------------------- desenlace */
+  .vista[data-vista="pow_arena"] .arena-desenlace { display: grid; }
+
+  .vista[data-vista="pow_arena"] .arena-bloque {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-5);
+    padding: var(--e-5);
+    border-color: var(--acento-borde);
+    background:
+      radial-gradient(28rem 14rem at 0% 0%, color-mix(in oklab, var(--acento) 12%, transparent), transparent 70%),
+      var(--sup-1);
+    box-shadow: var(--sombra-2), var(--acento-brillo);
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__sello {
+    --tam-icono: 1.6rem;
+    display: grid; place-items: center; align-content: center; gap: 2px;
+    inline-size: 5rem; block-size: 5rem; border-radius: var(--r-3);
+    color: var(--tinta-oscura); background: var(--acento);
+    font-family: var(--f-titular); font-weight: 700; font-size: var(--t-l); letter-spacing: -0.02em;
+    rotate: -4deg;
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__cuerpo { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-bloque__titulo { font-size: var(--t-2xl); line-height: 1.1; }
+  .vista[data-vista="pow_arena"] .arena-bloque__por { font-size: var(--t-m); font-family: var(--f-texto); font-weight: 500; color: var(--texto-2); letter-spacing: 0; }
+  .vista[data-vista="pow_arena"] .arena-bloque__huella { display: grid; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-hexfull {
+    display: block;
+    padding: var(--e-2) var(--e-3);
+    font-size: var(--t-s); line-height: 1.6; letter-spacing: 0.02em;
+    color: var(--texto-2); background: var(--fondo);
+    border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+    overflow-wrap: anywhere; font-variant-ligatures: none;
+  }
+  .vista[data-vista="pow_arena"] .arena-hexfull__ceros {
+    color: var(--tinta-oscura); background: var(--acento); font-weight: 700;
+    border-radius: 2px; padding-inline: 1px;
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__datos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @container vista (max-width: 640px) {
+    .vista[data-vista="pow_arena"] .arena-bloque__datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__datos .lectura__etiqueta { white-space: normal; }
+  .vista[data-vista="pow_arena"] .arena-bloque__difusion { display: flex; gap: var(--e-2); align-items: start; font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-bloque__difusion > .icono { color: var(--acento-texto); }
+  .vista[data-vista="pow_arena"] .arena-bloque__asimetria {
+    display: grid; grid-template-columns: auto auto auto minmax(0, 1fr); align-items: center; gap: var(--e-2) var(--e-4);
+    padding: var(--e-3) var(--e-4);
+    background: var(--fondo); border-radius: var(--r-2); border: 1px solid var(--linea-suave);
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__costo { display: grid; justify-items: center; line-height: 1.1; }
+  .vista[data-vista="pow_arena"] .arena-bloque__costo strong { font-size: var(--t-xl); }
+  .vista[data-vista="pow_arena"] .arena-bloque__costo:first-child strong { color: var(--acento-texto); }
+  .vista[data-vista="pow_arena"] .arena-bloque__costo:nth-child(3) strong { color: var(--valido); }
+  .vista[data-vista="pow_arena"] .arena-bloque__costo small { color: var(--texto-3); text-align: center; }
+  .vista[data-vista="pow_arena"] .arena-bloque__vs { font-family: var(--f-mono); color: var(--texto-3); font-size: var(--t-xs); }
+  .vista[data-vista="pow_arena"] .arena-bloque__explica { font-size: var(--t-xs); color: var(--texto-2); text-wrap: pretty; }
+  @container vista (max-width: 640px) {
+    .vista[data-vista="pow_arena"] .arena-bloque { grid-template-columns: minmax(0, 1fr); padding: var(--e-4); gap: var(--e-3); }
+    .vista[data-vista="pow_arena"] .arena-bloque__sello { inline-size: 3.5rem; block-size: 3.5rem; font-size: var(--t-s); }
+    .vista[data-vista="pow_arena"] .arena-bloque__asimetria { grid-template-columns: auto auto auto; justify-content: start; }
+    .vista[data-vista="pow_arena"] .arena-bloque__explica { grid-column: 1 / -1; }
+  }
+
+  .vista[data-vista="pow_arena"] .arena-final { padding: var(--e-4) var(--e-5); }
+  .vista[data-vista="pow_arena"] .arena-final__cuerpo { display: grid; gap: var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-final__titulo { font-size: var(--t-l); }
+  .vista[data-vista="pow_arena"] .arena-final .mensaje-servidor { font-weight: 600; }
+  .vista[data-vista="pow_arena"] .arena-final .grupo { margin-block-start: var(--e-2); }
+
+  .vista[data-vista="pow_arena"] .arena-enlace-nodo {
+    position: relative;
+    font-weight: 650; color: var(--acento-texto);
+    border-block-end: 1px dashed color-mix(in oklab, var(--acento) 60%, transparent);
+  }
+  .vista[data-vista="pow_arena"] .arena-bloque__nombre { margin-block-start: calc(-1 * var(--e-2)); font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-enlace-nodo::after { content: ""; position: absolute; inset: -10px -6px; }   /* objetivo ≥ 40 px */
+  .vista[data-vista="pow_arena"] .arena-enlace-nodo:hover { border-block-end-style: solid; }
+
+  /* ------------------------------------------------------------- empate */
+  .vista[data-vista="pow_arena"] .arena-empate { border-color: color-mix(in oklab, var(--advertencia) 50%, var(--linea)); }
+  .vista[data-vista="pow_arena"] .arena-empate .panel__cabecera > .icono { color: var(--advertencia); --tam-icono: 1.3rem; }
+  .vista[data-vista="pow_arena"] .arena-empate .panel__cabecera h2 { font-size: var(--t-l); }
+  .vista[data-vista="pow_arena"] .arena-empate__cuerpo { display: grid; gap: var(--e-3); }
+  .vista[data-vista="pow_arena"] .arena-empate__cuerpo > p { max-inline-size: 75ch; }
+  .vista[data-vista="pow_arena"] .arena-empate__regla {
+    margin: 0; padding: var(--e-2) var(--e-4);
+    border-inline-start: 3px solid var(--advertencia);
+    background: color-mix(in oklab, var(--advertencia) 8%, var(--fondo));
+    border-radius: 0 var(--r-2) var(--r-2) 0;
+    font-size: var(--t-s);
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__lista { display: grid; gap: 0; }
+  .vista[data-vista="pow_arena"] .arena-empate__fila {
+    display: grid; grid-template-columns: 2.25rem 7.5rem minmax(0, 1fr) auto; align-items: center; gap: var(--e-2) var(--e-3);
+    padding: var(--e-2) var(--e-3);
+    background: var(--fondo);
+    border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__fila[data-gana="si"] {
+    border-color: color-mix(in oklab, var(--valido) 55%, transparent);
+    background: color-mix(in oklab, var(--valido) 7%, var(--fondo));
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__fila[data-gana="no"] { opacity: 0.85; }
+  .vista[data-vista="pow_arena"] .arena-empate__menor {
+    justify-self: start; margin-inline-start: var(--e-3); padding-block: 1px;
+    font-family: var(--f-mono); font-size: var(--t-2xs); line-height: 1.4; color: var(--texto-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__pos { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-empate__quien { display: grid; gap: 2px; justify-items: start; }
+  .vista[data-vista="pow_arena"] .arena-empate__quien small { color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-empate__hex { font-size: var(--t-s); letter-spacing: 0.06em; font-variant-ligatures: none; overflow-wrap: anywhere; }
+  .vista[data-vista="pow_arena"] .arena-empate__z { color: var(--acento-texto); font-weight: 700; }
+  .vista[data-vista="pow_arena"] .arena-empate__igual { color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-empate__resto { color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-empate__d,
+  .vista[data-vista="pow_arena"] .arena-empate__d--gana {
+    color: var(--texto); font-weight: 700; border-radius: 2px;
+    box-shadow: 0 0 0 1px var(--rechazado);
+    background: color-mix(in oklab, var(--rechazado) 24%, transparent);
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__d--gana {
+    box-shadow: 0 0 0 1px var(--valido);
+    background: color-mix(in oklab, var(--valido) 24%, transparent);
+  }
+  .vista[data-vista="pow_arena"] .arena-empate__veredicto { display: grid; gap: 2px; justify-items: end; text-align: end; }
+  .vista[data-vista="pow_arena"] .arena-empate__veredicto small { font-size: var(--t-2xs); color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-empate__porque { display: grid; gap: var(--e-1); padding: 0; font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-empate__porque strong { color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-empate__cmp { padding: 0 0.3em; background: var(--sup-3); border-radius: 2px; color: var(--texto); }
+  @container vista (max-width: 640px) {
+    .vista[data-vista="pow_arena"] .arena-empate__fila {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: "pos quien veredicto" "hex hex hex";
+    }
+    .vista[data-vista="pow_arena"] .arena-empate__pos { grid-area: pos; }
+    .vista[data-vista="pow_arena"] .arena-empate__quien { grid-area: quien; }
+    .vista[data-vista="pow_arena"] .arena-empate__hex { grid-area: hex; }
+    .vista[data-vista="pow_arena"] .arena-empate__veredicto { grid-area: veredicto; }
+  }
+
+  /* -------------------------------------------------------------- pista */
+  .vista[data-vista="pow_arena"] .arena-pista-sec { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-pista-sec__cabeza {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 21rem); gap: var(--e-4); align-items: start;
+  }
+  @container vista (max-width: 720px) {
+    .vista[data-vista="pow_arena"] .arena-pista-sec__cabeza { grid-template-columns: minmax(0, 1fr); }
+  }
+  .vista[data-vista="pow_arena"] .arena-pista-sec__intro { display: grid; gap: var(--e-2); align-content: start; }
+  .vista[data-vista="pow_arena"] .arena-pista-sec__ayuda { font-size: var(--t-xs); max-inline-size: 64ch; }
+  .vista[data-vista="pow_arena"] .arena-ley { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-ley__muestra {
+    display: inline-flex; padding: 2px;
+    border: 1px dashed var(--acento); border-radius: var(--r-1);
+    font-family: var(--f-mono); font-size: var(--t-s);
+  }
+  .vista[data-vista="pow_arena"] .arena-ley__muestra i {
+    font-style: normal; display: grid; place-items: center;
+    inline-size: 1.05rem; block-size: 1.35rem;
+    color: var(--tinta-oscura); background: var(--acento); font-weight: 700;
+    border-radius: 2px;
+  }
+  .vista[data-vista="pow_arena"] .arena-ley__muestra i + i { margin-inline-start: 1px; }
+
+  /* telar de nonces: columnas = carriles, filas = los k intentos de una ronda */
+  .vista[data-vista="pow_arena"] .arena-telar-fig {
+    margin: 0; display: grid; gap: var(--e-2);
+    padding: var(--e-3);
+    background: var(--fondo); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-telar__svg { display: block; inline-size: 100%; block-size: auto; max-block-size: 8.5rem; overflow: visible; }
+  .vista[data-vista="pow_arena"] .arena-telar__i { font-family: var(--f-mono); font-size: 7px; font-weight: 600; fill: var(--texto-3); text-anchor: middle; }
+  .vista[data-vista="pow_arena"] .arena-telar__p {
+    fill: var(--sup-4);
+    transform-box: fill-box; transform-origin: center;
+    transition: fill var(--dur-entrada) var(--curva-func), opacity var(--dur-entrada) var(--curva-func);
+  }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="probando"] .arena-telar__p { fill: color-mix(in oklab, var(--acento) 70%, var(--sup-3)); }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="ganador"] .arena-telar__p { fill: color-mix(in oklab, var(--acento) 45%, var(--sup-3)); }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="ganador"] .arena-telar__i { fill: var(--acento-texto); }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="detenido"] .arena-telar__p { opacity: 0.4; }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="obsoleto"] .arena-telar__p { fill: var(--obsoleto); opacity: 0.55; }
+  .vista[data-vista="pow_arena"] .arena-telar__col[data-estado="inactivo"] .arena-telar__p { fill: none; stroke: var(--linea-fuerte); stroke-width: 0.8; stroke-dasharray: 1.5 1.5; }
+  .vista[data-vista="pow_arena"] .arena-telar__p[data-acierto] { opacity: 1; stroke: var(--fondo); stroke-width: 1; transform: scale(1.7); }
+  .vista[data-vista="pow_arena"] .arena-telar__p[data-acierto="gana"] { fill: var(--acento); }
+  .vista[data-vista="pow_arena"] .arena-telar__p[data-acierto="obsoleta"] { fill: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-telar__cap { font-size: var(--t-xs); line-height: 1.5; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+
+  /* encabezados de columna: solo cuando la pista va en una sola fila */
+  .vista[data-vista="pow_arena"] .arena-pista__columnas,
+  .vista[data-vista="pow_arena"] .arena-carril {
+    grid-template-columns: 10.5rem 16.75rem 3.5rem 6.5rem 5.5rem minmax(0, 1fr);
+    column-gap: var(--e-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-pista__columnas {
+    display: grid; padding: 0 var(--e-3);
+    font-size: var(--t-2xs); font-weight: 600; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: var(--texto-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-pista__columnas > span:nth-child(3) { text-align: end; }
+  .vista[data-vista="pow_arena"] .arena-pista { display: grid; gap: 3px; }
+
+  .vista[data-vista="pow_arena"] .arena-carril {
+    position: relative;
+    display: grid; align-items: center; row-gap: 2px;
+    grid-template-areas: "quien huella marca nonce intentos carril";
+    min-block-size: 2.75rem;
+    padding: var(--e-1) var(--e-3);
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-2);
+    transition: opacity var(--dur-escena) var(--curva-func) var(--retraso, 0ms),
+                background-color var(--dur-escena) var(--curva-func) var(--retraso, 0ms),
+                border-color var(--dur-entrada) var(--curva-func);
+  }
+  /* los intentos del minero, en la base del carril; la muesca central = intentos esperados */
+  .vista[data-vista="pow_arena"] .arena-carril::after {
+    content: ""; position: absolute; inset-inline: 6px; inset-block-end: 2px; block-size: 2px;
+    background: color-mix(in oklab, var(--acento) 70%, transparent); border-radius: 2px;
+    transform-origin: left center; transform: scaleX(var(--avance, 0));
+    transition: transform var(--dur-entrada) var(--curva-func);
+  }
+  .vista[data-vista="pow_arena"] .arena-carril::before {
+    content: ""; position: absolute; inset-inline-start: 50%; inset-block-end: 1px;
+    inline-size: 1px; block-size: 5px; background: var(--linea-fuerte);
+  }
+  /* la sigla nunca se trunca: si el chip de estado no cabe al lado, baja debajo */
+  .vista[data-vista="pow_arena"] .arena-carril__quien { grid-area: quien; display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-carril__id {
+    position: relative;
+    font-size: var(--t-s); color: var(--texto);
+    padding: 0 2px; border-radius: var(--r-1);
+    flex: none;
+  }
+  .vista[data-vista="pow_arena"] .arena-carril__id .blq-inst__sigla { overflow: visible; }
+  .vista[data-vista="pow_arena"] .arena-carril__id .blq-inst__sigla { font-size: var(--t-m); }
+  .vista[data-vista="pow_arena"] .arena-carril__chip { flex: none; }
+  .vista[data-vista="pow_arena"] .arena-carril__id::after { content: ""; position: absolute; inset: -10px -6px; }   /* objetivo ≥ 40 px */
+  .vista[data-vista="pow_arena"] .arena-carril__id:hover { color: var(--acento-texto); text-decoration: underline; text-underline-offset: 0.2em; }
+  .vista[data-vista="pow_arena"] .arena-carril__chip { min-block-size: 1.25rem; font-size: var(--t-2xs); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="probando"] .arena-carril__chip { display: none; }
+
+  .vista[data-vista="pow_arena"] .arena-huella { grid-area: huella; display: inline-flex; align-items: center; font-family: var(--f-mono); font-size: var(--t-s); }
+  .vista[data-vista="pow_arena"] .arena-huella__objetivo {
+    display: inline-flex; gap: 1px; padding: 2px;
+    border: 1px dashed var(--acento-borde); border-radius: var(--r-1);
+    background: color-mix(in oklab, var(--acento) 6%, transparent);
+    margin-inline-end: 3px;
+  }
+  .vista[data-vista="pow_arena"] .arena-huella__resto { display: inline-flex; gap: 1px; }
+  .vista[data-vista="pow_arena"] .arena-hex {
+    display: grid; place-items: center;
+    inline-size: 1.05rem; block-size: 1.4rem;
+    color: var(--texto-3); border-radius: 2px;
+    font-variant-ligatures: none;
+  }
+  .vista[data-vista="pow_arena"] .arena-huella__objetivo .arena-hex { color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-hex[data-ok] { color: var(--tinta-oscura); background: var(--acento); font-weight: 700; }
+  .vista[data-vista="pow_arena"] .arena-huella__resto .arena-hex[data-ok] { background: color-mix(in oklab, var(--acento) 55%, var(--sup-3)); }
+  .vista[data-vista="pow_arena"] .arena-hex[data-falla] { color: var(--rechazado); font-weight: 700; box-shadow: inset 0 -2px 0 var(--rechazado); }
+  .vista[data-vista="pow_arena"] .arena-huella__cola { margin-inline-start: 3px; font-size: var(--t-xs); color: var(--texto-3); }
+
+  .vista[data-vista="pow_arena"] .arena-carril__marca { grid-area: marca; display: grid; justify-items: end; line-height: 1.1; }
+  .vista[data-vista="pow_arena"] .arena-carril__ceros { font-family: var(--f-mono); font-size: var(--t-s); font-weight: 650; color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-carril__ceros[data-nivel="cerca"] { color: var(--acento-texto); }
+  .vista[data-vista="pow_arena"] .arena-carril__ceros[data-nivel="logrado"] { color: var(--valido); }
+  .vista[data-vista="pow_arena"] .arena-carril__max { font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--texto-3); }
+
+  .vista[data-vista="pow_arena"] .arena-carril__datos { display: contents; }
+  .vista[data-vista="pow_arena"] .arena-dato { display: grid; line-height: 1.2; min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-dato--nonce { grid-area: nonce; }
+  .vista[data-vista="pow_arena"] .arena-dato--intentos { grid-area: intentos; }
+  .vista[data-vista="pow_arena"] .arena-dato--carril { grid-area: carril; }
+  .vista[data-vista="pow_arena"] .arena-dato__e { display: none; }
+  .vista[data-vista="pow_arena"] .arena-dato__v { font-family: var(--f-mono); font-size: var(--t-s); font-variant-numeric: tabular-nums; }
+  .vista[data-vista="pow_arena"] .arena-carril__residuo { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-carril__proximos {
+    font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--texto-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* estados del carril */
+  .vista[data-vista="pow_arena"] .arena-carril[data-lider] { border-color: var(--acento-borde); box-shadow: inset 3px 0 0 var(--acento); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="ganador"] {
+    background: color-mix(in oklab, var(--acento) 13%, var(--sup-1));
+    border-color: var(--acento);
+    box-shadow: var(--acento-brillo);
+    z-index: 1;
+  }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="ganador"] .arena-carril__id { color: var(--acento-texto); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="ganador"] .arena-huella__objetivo { border-style: solid; border-color: var(--acento); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="ganador"] .arena-carril__chip {
+    color: var(--tinta-oscura); background: var(--acento); border-color: transparent;
+    text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+    rotate: -4deg;
+  }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="ganador"] .arena-carril__chip::before { background: var(--tinta-oscura); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="detenido"] { opacity: 0.42; }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="obsoleto"] { opacity: 0.8; border-style: dashed; border-color: var(--obsoleto); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="obsoleto"] .arena-hex[data-ok] { background: var(--obsoleto); }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="inactivo"] { opacity: 0.55; background: transparent; border-style: dashed; }
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="detenido"]::after,
+  .vista[data-vista="pow_arena"] .arena-carril[data-estado="obsoleto"]::after { background: var(--obsoleto); }
+
+  /* pista estrecha: dos renglones por carril (quién · huella · ceros / datos del carril) */
+  @container vista (max-width: 760px) {
+    .vista[data-vista="pow_arena"] .arena-pista__columnas { display: none; }
+    .vista[data-vista="pow_arena"] .arena-carril {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas: "quien huella marca" "datos datos datos";
+      padding-block: var(--e-2) var(--e-2);
+    }
+    .vista[data-vista="pow_arena"] .arena-carril__datos {
+      grid-area: datos;
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--e-3);
+    }
+    .vista[data-vista="pow_arena"] .arena-dato { display: inline-flex; align-items: baseline; gap: 0.35em; }
+    .vista[data-vista="pow_arena"] .arena-dato__e { display: inline; font-size: var(--t-2xs); color: var(--texto-3); }
+    .vista[data-vista="pow_arena"] .arena-dato__v { font-size: var(--t-xs); }
+    .vista[data-vista="pow_arena"] .arena-dato--carril { flex: 1 1 0; min-inline-size: 0; overflow: hidden; }
+    .vista[data-vista="pow_arena"] .arena-carril__residuo { white-space: nowrap; }
+    .vista[data-vista="pow_arena"] .arena-carril__proximos { min-inline-size: 0; }
+    .vista[data-vista="pow_arena"] .arena-carril__marca { min-inline-size: 2.4rem; }
+  }
+  @container vista (max-width: 560px) {
+    .vista[data-vista="pow_arena"] .arena-hex--ancho { display: none; }
+    .vista[data-vista="pow_arena"] .arena-huella__cola { display: none; }
+    .vista[data-vista="pow_arena"] .arena-hex { inline-size: 0.95rem; }
+  }
+
+  /* -------------------------------------------------------- recompensas */
+  .vista[data-vista="pow_arena"] .arena-rec .panel__cabecera h2 { font-size: var(--t-l); }
+  .vista[data-vista="pow_arena"] .arena-rec__cuerpo { display: grid; gap: var(--e-4); }
+  .vista[data-vista="pow_arena"] .arena-rec__regla {
+    font-size: var(--t-s); color: var(--texto-2); max-inline-size: 78ch;
+    padding-inline-start: var(--e-3); border-inline-start: 2px solid var(--pendiente);
+  }
+  .vista[data-vista="pow_arena"] .arena-rec__regla b { color: var(--texto); }
+
+  .vista[data-vista="pow_arena"] .arena-saldos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-3); }
+  .vista[data-vista="pow_arena"] .arena-saldo {
+    --s: var(--valido);
+    display: grid; gap: 2px;
+    padding: var(--e-3) var(--e-4);
+    background: var(--fondo); border: 1px solid var(--linea-suave);
+    border-inline-start: 3px solid var(--s);
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="pow_arena"] .arena-saldo[data-tipo="pendiente"] { --s: var(--pendiente); }
+  .vista[data-vista="pow_arena"] .arena-saldo__cifra { font-family: var(--f-mono); font-size: var(--t-xl); font-weight: 600; color: var(--s); font-variant-numeric: tabular-nums; }
+  .vista[data-vista="pow_arena"] .arena-saldo small { color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-saldos__barra { grid-column: 1 / -1; }
+
+  /* línea de tiempo: filas = recompensas, columnas = alturas de la cadena */
+  .vista[data-vista="pow_arena"] .arena-rec__linea-marco { display: grid; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-rec__desliza { overflow-x: auto; overscroll-behavior-x: contain; padding-block-end: 2px; }
+  .vista[data-vista="pow_arena"] .arena-rec__vacio { font-size: var(--t-s); color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-linea {
+    --etq: 7.5rem;
+    --cols: 8;
+    display: grid; gap: 3px;
+    min-inline-size: calc(var(--etq) + var(--cols) * 1.35rem);
+    font-family: var(--f-mono);
+  }
+  .vista[data-vista="pow_arena"] .arena-linea__eje,
+  .vista[data-vista="pow_arena"] .arena-linea__fila {
+    display: grid; align-items: center;
+    grid-template-columns: var(--etq) repeat(var(--cols), minmax(0, 1fr));
+  }
+  .vista[data-vista="pow_arena"] .arena-linea__esq { grid-column: 1; font-family: var(--f-texto); font-size: var(--t-2xs); font-weight: 600; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: var(--texto-3); }
+  .vista[data-vista="pow_arena"] .arena-linea__h { grid-row: 1; text-align: center; font-size: 10px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+  .vista[data-vista="pow_arena"] .arena-linea__h[data-ahora] {
+    justify-self: center; padding: 0 0.35em; border-radius: var(--r-pildora);
+    color: var(--tinta-oscura); background: var(--acento); font-weight: 700;
+  }
+  .vista[data-vista="pow_arena"] .arena-linea__filas { position: relative; display: grid; gap: 3px; }
+  .vista[data-vista="pow_arena"] .arena-linea__fila { grid-template-rows: 1.75rem; }
+  .vista[data-vista="pow_arena"] .arena-linea__etq {
+    grid-column: 1; grid-row: 1;
+    display: inline-flex; align-items: center; gap: 0.4em;
+    min-block-size: 1.75rem; padding: 0 0.45em; margin-inline-end: var(--e-2);
+    font-size: var(--t-xs); color: var(--texto-2);
+    border-radius: var(--r-1);
+    border: 1px solid transparent;
+  }
+  .vista[data-vista="pow_arena"] .arena-linea__etq::after { content: ""; position: absolute; inset: -6px 0; }
+  .vista[data-vista="pow_arena"] .arena-linea__etq { position: relative; }
+  .vista[data-vista="pow_arena"] .arena-linea__etq .icono { --tam-icono: 0.9rem; color: var(--pendiente); }
+  .vista[data-vista="pow_arena"] .arena-linea__fila[data-estado="madura"] .arena-linea__etq .icono { color: var(--valido); }
+  .vista[data-vista="pow_arena"] .arena-linea__etq-b { font-weight: 700; color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-linea__etq:hover { background: var(--sup-3); }
+  .vista[data-vista="pow_arena"] .arena-linea__etq[aria-pressed="true"] { background: var(--sup-3); border-color: var(--linea-fuerte); color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-linea__celda {
+    grid-row: 1;
+    display: grid; place-items: center;
+    block-size: 1.5rem; margin-inline: 1px;
+    font-size: 10px; color: var(--texto-3);
+    border: 1px solid var(--linea); border-radius: 3px;
+  }
+  .vista[data-vista="pow_arena"] .arena-linea__celda .icono { --tam-icono: 0.8rem; }
+  .vista[data-vista="pow_arena"] .arena-linea__celda[data-tipo="origen"] { border-color: var(--acento-borde); color: var(--acento-texto); background: var(--acento-tenue); }
+  .vista[data-vista="pow_arena"] .arena-linea__celda[data-tipo="conf"][data-lleno] { color: var(--tinta-oscura); background: var(--pendiente); border-color: transparent; font-weight: 700; }
+  .vista[data-vista="pow_arena"] .arena-linea__celda[data-tipo="gasto"] { border-style: dashed; }
+  .vista[data-vista="pow_arena"] .arena-linea__celda[data-tipo="gasto"][data-lleno] { color: var(--tinta-oscura); background: var(--valido); border-style: solid; border-color: transparent; }
+  .vista[data-vista="pow_arena"] .arena-linea__fila[data-estado="madura"] .arena-linea__celda[data-tipo="conf"][data-lleno] { background: color-mix(in oklab, var(--valido) 55%, var(--sup-3)); }
+  .vista[data-vista="pow_arena"] .arena-linea__fila[data-estado="madura"] { opacity: 0.78; }
+  .vista[data-vista="pow_arena"] .arena-linea__ahora {
+    position: absolute; inset-block: -3px;
+    inset-inline-start: calc(var(--etq) + (var(--c) + 0.5) * ((100% - var(--etq)) / var(--cols)));
+    inline-size: 0; border-inline-start: 1px dashed var(--acento);
+    pointer-events: none;
+  }
+  @container vista (max-width: 560px) {
+    .vista[data-vista="pow_arena"] .arena-linea { --etq: 5.75rem; min-inline-size: calc(var(--etq) + var(--cols) * 1.1rem); }
+    .vista[data-vista="pow_arena"] .arena-linea__etq { margin-inline-end: var(--e-1); gap: 0.3em; padding-inline: 0.3em; }
+    .vista[data-vista="pow_arena"] .arena-linea__etq > .icono { display: none; }
+    .vista[data-vista="pow_arena"] .arena-linea__h:not([data-fijo]) { visibility: hidden; }
+    .vista[data-vista="pow_arena"] .arena-saldos { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .vista[data-vista="pow_arena"] .arena-rec__detalle:empty,
+  .vista[data-vista="pow_arena"] .arena-rec__intento:empty { display: none; }
+  .vista[data-vista="pow_arena"] .arena-rec__ficha {
+    --f: var(--pendiente);
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-3);
+    padding: var(--e-3) var(--e-4);
+    font-size: var(--t-s);
+    background: color-mix(in oklab, var(--f) 6%, var(--fondo));
+    border: 1px solid color-mix(in oklab, var(--f) 35%, transparent);
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="pow_arena"] .arena-rec__ficha[data-estado="madura"] { --f: var(--valido); }
+  .vista[data-vista="pow_arena"] .arena-rec__ficha > div { display: grid; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-rec__ficha-icono {
+    display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 50%;
+    color: var(--f); background: color-mix(in oklab, var(--f) 14%, transparent);
+  }
+  .vista[data-vista="pow_arena"] .arena-rec__ficha-titulo { font-weight: 650; color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-rec__rechazo .pila { --pila: var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="pow_arena"] .arena-rec__renglones { max-inline-size: 22rem; font-size: var(--t-xs); }
+
+  .vista[data-vista="pow_arena"] .arena-rec__por-minero { display: grid; gap: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-rec__mineros { display: grid; gap: var(--e-1); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+  .vista[data-vista="pow_arena"] .arena-minero {
+    display: grid; grid-template-columns: auto 1fr 1fr; align-items: baseline; gap: 2px var(--e-3);
+    padding: var(--e-2) var(--e-3);
+    background: var(--fondo); border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+    font-size: var(--t-xs);
+  }
+  .vista[data-vista="pow_arena"] .arena-minero__v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .vista[data-vista="pow_arena"] .arena-minero__v[data-tipo="disponible"] { color: var(--valido); }
+  .vista[data-vista="pow_arena"] .arena-minero__v[data-tipo="pendiente"] { color: var(--pendiente); }
+  .vista[data-vista="pow_arena"] .arena-minero__barra { grid-column: 1 / -1; block-size: 6px; }
+  .vista[data-vista="pow_arena"] .arena-minero__nota { grid-column: 1 / -1; color: var(--texto-3); font-size: var(--t-2xs); }
+
+  /* el importe que viaja al saldo disponible cuando una recompensa madura */
+  .vista[data-vista="pow_arena"] .arena-moneda {
+    position: absolute; z-index: 3; pointer-events: none;
+    padding: 0.1em 0.55em;
+    font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 700;
+    color: var(--tinta-oscura); background: var(--valido);
+    border-radius: var(--r-pildora);
+    box-shadow: 0 0 18px -2px color-mix(in oklab, var(--valido) 70%, transparent);
+  }
+
+  /* ------------------------------------------------------ cómo funciona */
+  .vista[data-vista="pow_arena"] .arena-como {
+    padding: 0 var(--e-4);
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+  }
+  .vista[data-vista="pow_arena"] .arena-como > summary { padding-block: var(--e-2); }
+  .vista[data-vista="pow_arena"] .arena-como__cuerpo { display: grid; gap: var(--e-3); padding-block: var(--e-2) var(--e-4); }
+  .vista[data-vista="pow_arena"] .arena-como__pasos { display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+  .vista[data-vista="pow_arena"] .arena-como__paso { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--e-3); font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="pow_arena"] .arena-como__paso strong { color: var(--texto); }
+  .vista[data-vista="pow_arena"] .arena-como__num {
+    display: grid; place-items: center;
+    inline-size: 1.75rem; block-size: 1.75rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 600;
+    color: var(--acento-texto); background: var(--acento-tenue);
+    box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .vista[data-vista="pow_arena"] .arena-como__nota { font-size: var(--t-xs); color: var(--texto-3); padding-block-start: var(--e-2); border-block-start: 1px dashed var(--linea); }
+
+  /* --------------------------------------------- movimiento (en bucle) */
+  @media (prefers-reduced-motion: no-preference) {
+    /* el barrido de la ronda: las k filas se encienden en orden, todas las columnas a la vez */
+    .vista[data-vista="pow_arena"] .arena-telar__svg[data-estado="minando"] .arena-telar__col[data-estado="probando"] .arena-telar__p {
+      animation: arena-barrido 1.1s linear infinite;
+      animation-delay: calc(var(--j, 0) * 105ms);
+    }
+  }
+  @keyframes arena-barrido {
+    0%, 100% { opacity: 0.35; }
+    10% { opacity: 1; }
+    35% { opacity: 0.35; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vista[data-vista="pow_arena"] .arena-carril,
+    .vista[data-vista="pow_arena"] .arena-carril::after,
+    .vista[data-vista="pow_arena"] .arena-esperado::before { transition-duration: 1ms; transition-delay: 0ms; }
+  }
+
+  /* ------------------------------------------- marcas sobre el anillo */
+  .nodo.arena-lider .nodo__halo { stroke: var(--acento); stroke-width: 4.5; }
+  .nodo.arena-lider .nodo__id { fill: var(--acento-texto); }
+}

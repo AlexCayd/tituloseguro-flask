@@ -1,319 +1,131 @@
-{% extends "base.html" %}
-{% import "_componentes.html" as c with context %}
-{% from "_carrera.html" import carrera with context %}
-{% block title %}Credenciales que nadie puede alterar{% endblock %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Título Seguro</title>
+  <meta name="description" content="Título Seguro: simulador de un libro de registros de credenciales académicas compartido por 10 a 20 instituciones educativas. Firmas institucionales Ed25519, créditos de certificación, sellado por trabajo (Proof of Work) y aval por apuesta (Proof of Stake), explicados paso a paso.">
+  <meta name="theme-color" content="#14171d">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/bricolage-grotesque-vf.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/instrument-sans-vf.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/componentes.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
+  {# Los CSS de cada vista (static/css/vistas/<id>.css) los carga main.js al montarla. #}
+  <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body data-modo="pow" data-vista="red">
+  {% include "_iconos.html" %}
+  <a class="saltar" href="#escritorio">Saltar al contenido</a>
 
-{% block content %}
-{#- La portada sigue a UNA credencial real (la más reciente registrada) por los seis capítulos. -#}
-{%- set rol = usuario.rol if usuario else none -%}
-{%- set TIPOS_ES = {'título': 'Título', 'diploma': 'Diploma', 'certificado': 'Certificado', 'constancia': 'Constancia'} -%}
-{%- set unis = {} -%}{%- for u in universidades %}{% set _ = unis.update({u.codigo: u}) %}{% endfor -%}
-{%- set regs = bloques | selectattr('transaccion.proposito', 'equalto', 'registro_academico') | list -%}
-{%- set prota = regs[0] if regs else none -%}
-{%- set otra = regs[1] if regs|length > 1 else none -%}
-{%- set pc = prota.transaccion.contenido if prota else (cola[0] if cola else none) -%}
-{%- set ultimo = bloques[0] if bloques else none -%}
-{%- set hero_hex = (ultimo.firma if ultimo and ultimo.firma else 'TITULO SEGURO') -%}
-{%- set hero_letras = (ultimo.transaccion.contenido.universidad if ultimo and ultimo.transaccion.proposito == 'registro_academico' else 'TS') -%}
-{%- set uni_prota = unis.get(pc.universidad) if pc else none -%}
-
-{# ================================================================ héroe #}
-<section class="portada" aria-labelledby="portada-titulo">
-  <div class="envoltura portada__rejilla">
-    <div class="portada__texto">
-      <p class="ceja">Registro académico en cadena de bloques · simulador</p>
-      <h1 class="titulo-1 portada__titulo" id="portada-titulo" data-tour="1" data-tour-titulo="Bienvenido a Título Seguro" data-tour-texto="Aquí ves, paso a paso y con datos reales, cómo se protege un título universitario para que nadie lo pueda falsificar ni modificar sin que se note.">
-        <span class="linea">Credenciales que</span> <em class="linea">nadie puede alterar.</em>
-      </h1>
-      <p class="portada__lede">Un libro de registro público donde cada título queda firmado, sellado y cosido al anterior. Si alguien cambia una sola letra, se nota.</p>
-      <div class="portada__acciones">
-        <a class="boton boton--primario boton--flecha" href="#cap-emitir">Ver cómo funciona {{ c.icono('abajo') }}</a>
-        <a class="boton boton--secundario" href="{{ url_for('verificar') }}">{{ c.icono('lupa') }} Verificar un título</a>
-      </div>
-      <div class="portada__libro" data-tour="2" data-tour-titulo="El libro, en vivo" data-tour-texto="Estos números vienen del servidor y se actualizan solos: cuántas hojas (bloques) tiene la cadena, cuántas credenciales esperan turno y qué tan difícil es sellar la siguiente." data-explica="Datos reales de la cadena que se actualizan solos cada pocos segundos." data-explica-titulo="El libro en vivo">
-        <p class="ceja">El libro, ahora mismo</p>
-        <ul class="libro-mayor" role="list">
-          <li><span class="libro-mayor__concepto">Folios en la {{ c.termino('cadena', 'cadena') }}</span><span class="libro-mayor__guia" aria-hidden="true"></span><span class="libro-mayor__valor" data-vivo="longitud" data-vivo-fmt="miles">{{ estado.longitud|miles }}</span></li>
-          <li><span class="libro-mayor__concepto">Credenciales esperando turno</span><span class="libro-mayor__guia" aria-hidden="true"></span><span class="libro-mayor__valor" data-vivo="cola" data-vivo-fmt="miles">{{ estado.cola|miles }}</span></li>
-          <li><span class="libro-mayor__concepto">{{ c.termino('dificultad', 'Dificultad') }}</span><span class="libro-mayor__guia" aria-hidden="true"></span><span class="libro-mayor__valor"><span data-vivo="dificultad_config">{{ estado.dificultad_config }}</span> ceros</span></li>
-          <li><span class="libro-mayor__concepto">Estado de la cadena</span><span class="libro-mayor__guia" aria-hidden="true"></span><span class="libro-mayor__valor">{{ c.sello_goma('valida' if validacion.valida else 'invalida', 'Íntegra' if validacion.valida else 'Rota', chico=true, data_cadena_valida='', data_texto_ok='Íntegra', data_texto_mal='Rota') }}</span></li>
-        </ul>
-      </div>
-    </div>
-    <figure class="portada__sello">
-      <svg class="portada__cintas" viewBox="0 0 200 170" aria-hidden="true" focusable="false">
-        <path class="cinta-sombra" d="M88 0h26L64 160l-12-12-14 14Z" transform="translate(3 3)"/>
-        <path class="cinta-sombra" d="M112 0H86l50 160 12-12 14 14Z" transform="translate(3 3)"/>
-        <path class="cinta" d="M86 0h26L62 158l-12-12-14 14Z"/>
-        <path class="cinta" d="M114 0H88l50 158 12-12 14 14Z"/>
-        <path class="cinta-hilo" d="M99 0 49 150M101 0l50 150"/>
+  <header class="cabecera">
+    <a class="marca" href="#/pow/red" aria-label="Título Seguro: inicio">
+      {# la órbita de instituciones con un birrete en el núcleo: la red que avala credenciales #}
+      <svg class="marca__glifo" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="11" class="marca__orbita"/>
+        <circle cx="16" cy="5" r="2.4" class="marca__activo"/>
+        <circle cx="25.5" cy="10.5" r="2"/><circle cx="25.5" cy="21.5" r="2"/>
+        <circle cx="16" cy="27" r="2"/><circle cx="6.5" cy="21.5" r="2"/><circle cx="6.5" cy="10.5" r="2"/>
+        <path class="marca__birrete" d="M16 12.4 10.6 15 16 17.6 21.4 15z"/>
+        <path class="marca__birrete" d="M12.9 16.3v2.2c0 .85 1.4 1.6 3.1 1.6s3.1-.75 3.1-1.6v-2.2L16 17.9z"/>
       </svg>
-      <span class="portada__onda" aria-hidden="true"></span>
-      {{ c.sello(hero_hex, 'ok', 'Sello de lacre del folio más reciente, dibujado a partir de su firma digital', 'xl', letras=hero_letras) }}
-      <figcaption class="portada__pie-sello">Sello del folio <span class="mono">#{{ ultimo.numero if ultimo else 0 }}</span>: nace de los bytes de su {{ c.termino('firma', 'firma') }}</figcaption>
-    </figure>
+      <span class="marca__texto">
+        <span class="marca__nombre">Título Seguro</span>
+        <span class="marca__bajada"><span>registro de credenciales académicas</span><span class="marca__sep"> · </span><span>simulador de blockchain</span></span>
+      </span>
+    </a>
+
+    {# Nombre técnico + lema académico en la primera línea; debajo, el estado corto del consorcio.
+       En pantallas estrechas el lema baja a la segunda línea y el estado se oculta. #}
+    <div class="modo" role="group" aria-label="Cómo se ponen de acuerdo las instituciones (mecanismo de consenso)">
+      <button type="button" class="modo__opcion" data-modo="pow" aria-pressed="true">
+        <svg class="icono" aria-hidden="true"><use href="#i-calor"/></svg>
+        <span class="modo__nombre">Proof of Work<span class="modo__apodo"> · sellado por trabajo</span></span>
+        <span class="modo__estado" data-estado-modo="pow"><span class="modo__lema">sellado por trabajo</span><span class="modo__n">consultando…</span><span class="modo__alt"></span></span>
+      </button>
+      <button type="button" class="modo__opcion" data-modo="pos" aria-pressed="false">
+        <svg class="icono" aria-hidden="true"><use href="#i-apuesta"/></svg>
+        <span class="modo__nombre">Proof of Stake<span class="modo__apodo"> · aval por apuesta</span></span>
+        <span class="modo__estado" data-estado-modo="pos"><span class="modo__lema">aval por apuesta</span><span class="modo__n">consultando…</span><span class="modo__alt"></span></span>
+      </button>
+    </div>
+
+    <dl class="lecturas" aria-label="Estado del libro de registros">
+      <div class="lectura lectura--altura">
+        <dt class="lectura__etiqueta"><abbr title="Folios sellados en el libro de referencia (altura de la cadena)">Folios</abbr></dt>
+        <dd class="lectura__valor lectura__valor--grande cifra" id="lect-altura">—</dd>
+      </div>
+      <div class="lectura lectura--sinc">
+        <dt class="lectura__etiqueta"><abbr title="Instituciones que tienen el mismo libro de registros">Sincronía</abbr></dt>
+        <dd class="lectura__valor" id="lect-sinc"><span class="sinc-barra" aria-hidden="true"></span><span class="cifra" id="lect-sinc-txt">—</span><span class="lectura__unidad"> instituciones</span></dd>
+      </div>
+      <div class="lectura">
+        <dt class="lectura__etiqueta"><abbr title="Registros de credenciales en espera de sello">En espera</abbr></dt>
+        <dd class="lectura__valor cifra" id="lect-pendientes">—</dd>
+      </div>
+      <div class="lectura">
+        <dt class="lectura__etiqueta"><abbr title="¿Cuadran las cuentas y las copias del libro?">Integridad</abbr></dt>
+        <dd class="lectura__valor" id="lect-salud">—</dd>
+      </div>
+      <div class="lectura lectura--reloj">
+        <dt class="lectura__etiqueta"><button type="button" class="termino" data-term="reloj_logico" aria-expanded="false">Reloj</button></dt>
+        <dd class="lectura__valor cifra" id="lect-reloj">—</dd>
+      </div>
+      <div class="lectura lectura--conexion">
+        <dt class="solo-lectores">Conexión</dt>
+        <dd class="conexion" id="lect-conexion" data-estado="ok"><span class="conexion__punto" aria-hidden="true"></span><span id="lect-conexion-txt">en vivo</span></dd>
+      </div>
+    </dl>
+  </header>
+
+  {# Solo en móvil: franja pegajosa con la sincronía y el acceso al anillo (que se despliega encima). #}
+  <div class="franja-red" id="franja-red" data-conexion="ok">
+    <svg class="franja-red__mini" id="franja-mini" viewBox="-20 -20 40 40" aria-hidden="true"></svg>
+    <p class="franja-red__texto">
+      <strong class="cifra" id="franja-sinc">—</strong>
+      <span class="franja-red__detalle" id="franja-detalle">Consultando al consorcio…</span>
+    </p>
+    <button type="button" class="boton boton--secundario boton--chico franja-red__boton" id="franja-boton" aria-expanded="false" aria-controls="observatorio-red">
+      <svg class="icono" aria-hidden="true"><use href="#i-red"/></svg><span>Ver instituciones</span>
+    </button>
   </div>
-</section>
 
-<div class="historia">
-  <svg class="historia__cordon" aria-hidden="true" focusable="false" preserveAspectRatio="none" viewBox="0 0 32 1000" height="1000">
-    <defs>
-      <mask id="cordon-mascara" maskUnits="userSpaceOnUse" x="-20" y="-20" width="72" height="100000">
-        <path class="c-mascara" data-cordon-trazo pathLength="1" d="M16 0V1000"/>
-      </mask>
-    </defs>
-    <g mask="url(#cordon-mascara)">
-      <path class="c-sombra" data-cordon-trazo d="M16 0V1000" transform="translate(1.5 1.5)"/>
-      <path class="c-base" data-cordon-trazo d="M16 0V1000"/>
-      <path class="c-hilo" data-cordon-trazo d="M16 0V1000"/>
-    </g>
-  </svg>
-
-  {# ============================================================ I · Emitir #}
-  <section class="capitulo" id="cap-emitir" aria-labelledby="cap-emitir-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">I</p>
-        <p class="ceja">Capítulo I · Emitir</p>
-        <h2 class="titulo-2" id="cap-emitir-titulo">La universidad redacta <em>la credencial.</em></h2>
-        <div class="prosa">
-          <p>Cuando terminas tus estudios, tu universidad llena una ficha: {{ c.termino('folio', 'folio') }}, tipo de documento, programa y fecha. <strong>Tu nombre no se escribe.</strong> En su lugar va un {{ c.termino('id-alumno', 'ID de alumno') }}: un código que solo tu universidad sabe relacionar contigo.</p>
-          <p>Después, la ficha espera su turno en una {{ c.termino('cola', 'fila') }} hasta que alguien la selle en el libro.</p>
+  <div class="banco">
+    <aside class="observatorio" aria-label="Anillo de instituciones y narrador">
+      <div class="observatorio__red" id="observatorio-red">
+        <div class="observatorio__anillo" id="anillo">
+          <p class="observatorio__carga">Reuniendo a las instituciones del consorcio…</p>
         </div>
-        {%- if rol in ('UNIVERSITY', 'ADMIN') %}
-        <div class="capitulo__enlaces"><a class="boton boton--secundario boton--flecha" href="{{ url_for('emitir') }}">Emitir una credencial {{ c.icono('flecha') }}</a></div>
-        {%- endif %}
-      </header>
-
-      <div class="capitulo__pieza acta-escena" data-revela style="--retraso: 1">
-        {%- if pc %}
-        <article class="tarjeta-papel acta" aria-labelledby="acta-titulo" data-tour="3" data-tour-titulo="Una credencial real" data-tour-texto="Esta es la ficha de una credencial que de verdad está registrada. Mira el campo del nombre: está vacío a propósito. La cadena solo guarda un seudónimo." data-explica="Ficha real de la credencial que seguimos en toda la página. El nombre del alumno nunca se guarda; en su lugar va un seudónimo." data-explica-titulo="La ficha">
-          <header class="acta__cabeza">
-            <h3 class="acta__titulo" id="acta-titulo">Ficha de credencial</h3>
-            <span class="acta__folio">{{ pc.folio }}</span>
-          </header>
-          <dl class="ficha">
-            <dt>Universidad</dt><dd>{{ uni_prota.nombre if uni_prota else pc.universidad }} <span class="etiqueta etiqueta--verde">{{ pc.universidad }}</span></dd>
-            <dt>Documento</dt><dd>{{ TIPOS_ES.get(pc.tipo, pc.tipo) }}</dd>
-            <dt>Programa</dt><dd>{{ pc.programa }}</dd>
-            <dt>Fecha de emisión</dt><dd>{{ pc.fecha_emision }}</dd>
-            <dt>Nombre del alumno</dt><dd><span class="acta__oculto" role="img" aria-label="Campo en blanco a propósito"></span> <span class="acta__nota">Nunca se escribe en la cadena.</span></dd>
-            <dt>ID de alumno</dt>
-            <dd class="acta__seudonimo">{% if pc.alumno_id %}{{ c.huella(pc.alumno_id, n=24) }}{% else %}<span class="huella">se calcula al emitir</span>{% endif %}<span class="acta__nota">Seudónimo: sale de la matrícula, pero no regresa a ella.</span></dd>
-            <dt>{{ c.termino('huella-documento', 'Huella del documento') }}</dt>
-            <dd>{% if pc.huella_documento %}{{ c.huella(pc.huella_documento, n=24) }}{% else %}<span class="huella">se calcula al emitir</span>{% endif %}</dd>
-          </dl>
-          <footer class="acta__pie">
-            <p>Lista para firmarse. El sello de la universidad va en este círculo: lo verás en el capítulo II.</p>
-            {{ c.sello(pc.folio, 'pendiente', 'Lugar del sello: todavía sin firmar', 'm', letras=pc.universidad) }}
-          </footer>
-        </article>
-        {%- else %}
-        <div class="vacio"><strong>Aún no hay credenciales</strong><span>Cuando una universidad emita la primera, aparecerá aquí.</span></div>
-        {%- endif %}
-
-        <div class="cola" data-explica="Las credenciales ya firmadas que esperan turno. Se sellan en orden de llegada, una por carrera." data-explica-titulo="La fila de espera">
-          <p class="cola__cabeza"><span class="cola__cuenta" data-vivo="cola" data-vivo-fmt="miles">{{ estado.cola|miles }}</span><span>credenciales firmadas esperan turno. Las próximas:</span></p>
-          {%- if cola %}
-          <ol class="cola__pila" role="list">
-            {%- for p in cola %}
-            <li class="cola__papeleta"><span class="mono">{{ p.folio }}</span><span>{% if p.tipo_tx == 'registro' %}{{ TIPOS_ES.get(p.tipo, p.tipo) }} · {{ p.programa }}{% else %}Revocación{% endif %}</span>{% if loop.first %}<span class="cola__turno">{{ 'Sellándose' if p.estado == 'minando' else 'Sigue' }}</span>{% else %}<span></span>{% endif %}</li>
-            {%- endfor %}
-          </ol>
-          {%- else %}
-          <p class="nota">La fila está vacía: no hay nada que sellar por ahora.</p>
-          {%- endif %}
-        </div>
+        <div class="observatorio__banner" id="banner-sinc" aria-live="polite"></div>
       </div>
-    </div>
-  </section>
+      <section class="narrador" id="narrador"></section>
+    </aside>
 
-  {# ============================================================ II · Firmar #}
-  <section class="capitulo" id="cap-firmar" aria-labelledby="cap-firmar-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">II</p>
-        <p class="ceja">Capítulo II · Firmar</p>
-        <h2 class="titulo-2" id="cap-firmar-titulo">La firma con un sello <em>que nadie más tiene.</em></h2>
-        <div class="prosa">
-          <p>La universidad firma la ficha con su {{ c.termino('llave-privada', 'llave privada') }}, un secreto que solo ella guarda. Cualquiera puede comprobar esa firma con su {{ c.termino('llave-publica', 'llave pública') }}, que está a la vista de todos.</p>
-          <p>Este sello es real: lo dibujamos con los 64 bytes de la {{ c.termino('firma', 'firma') }} de nuestra credencial. Otra firma da otro sello, y si alguien toca el documento, el sello deja de corresponder.</p>
-        </div>
-      </header>
-
-      <div class="capitulo__pieza firma-escena" data-revela style="--retraso: 1">
-        <figure class="firma-escena__sello" data-tour="4" data-tour-titulo="La firma es un sello único" data-tour-texto="Cada firma digital produce un dibujo distinto: el número de pétalos, el giro y hasta el texto del anillo salen de sus bytes. Si la firma no corresponde al documento, el sello se agrieta." data-explica="Sello generado con los bytes reales de la firma Ed25519 de la credencial. El texto del anillo son los primeros caracteres de esa firma." data-explica-titulo="El sello de la firma">
-          {%- if prota %}
-          {{ c.sello(prota.firma, 'ok', 'Sello de la firma de la credencial ' ~ pc.folio, 'l', letras=pc.universidad) }}
-          <figcaption><span>Firma de <strong>{{ uni_prota.nombre if uni_prota else pc.universidad }}</strong></span><span>sobre <span class="mono">{{ pc.folio }}</span></span>{{ c.huella(prota.firma, n=32) }}</figcaption>
-          {%- else %}
-          {{ c.sello('TITULO SEGURO', 'pendiente', 'Sello sin estampar: todavía no hay firmas en la cadena', 'l') }}
-          <figcaption>Todavía no hay firmas en la cadena. Cuando se selle la primera credencial, su sello aparecerá aquí.</figcaption>
-          {%- endif %}
-        </figure>
-        <div class="llave llave--privada">
-          {{ c.icono('llave', 'icono llave__icono') }}
-          <h3>Llave privada: el sello de metal</h3>
-          <p>La guarda la universidad, bajo llave. Con ella estampa el sello. En Título Seguro se guarda cifrada y nunca sale del servidor.</p>
-        </div>
-        <div class="llave llave--publica">
-          {{ c.icono('lupa', 'icono llave__icono') }}
-          <h3>Llave pública: el molde a la vista</h3>
-          <p>Sirve para comprobar que un sello es auténtico, pero no para fabricar uno.{% if prota %} La de {{ pc.universidad }} empieza así:{% endif %}</p>
-          {%- if prota %}<code>{{ prota.transaccion.remitente|hexcorto(12) }}</code>{% endif %}
-        </div>
-        <div class="consorcio">
-          <p class="nota">Solo estas instituciones tienen llave para firmar; es una {{ c.termino('red-permisionada', 'red permisionada') }}. Verificar, en cambio, lo puede hacer cualquiera.</p>
-          <ul role="list">
-            {%- for u in universidades %}
-            <li><span class="etiqueta etiqueta--verde">{{ u.codigo }}</span> {{ u.nombre }}</li>
-            {%- endfor %}
-          </ul>
-        </div>
-        {%- if otra %}
-        <div class="firma-escena__otra">
-          {{ c.sello(otra.firma, 'ok', 'Sello de la firma de la credencial anterior: es distinto', 'm', letras=otra.transaccion.contenido.universidad) }}
-          <p>¿Otra firma, otro sello? La credencial anterior, <span class="mono">{{ otra.transaccion.contenido.folio }}</span>, tiene este. Mismo emisor, firma distinta: dibujo distinto.</p>
-        </div>
-        {%- endif %}
-      </div>
-    </div>
-  </section>
-
-  {# ============================================================ III · La carrera #}
-  <section class="capitulo capitulo--ancho capitulo--carrera oscuro" id="cap-carrera" aria-labelledby="cap-carrera-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">III</p>
-        <p class="ceja">Capítulo III · La carrera</p>
-        <h2 class="titulo-2" id="cap-carrera-titulo">Cuatro escribanos compiten <em>por archivarla.</em></h2>
-        <div class="prosa">
-          <p>Para que la ficha entre al libro alguien tiene que hacer un trabajo difícil: encontrar un {{ c.termino('nonce', 'número de intento') }} que, junto con la ficha, produzca una {{ c.termino('huella', 'huella') }} que empiece con varios ceros. No hay atajo: solo probar y probar, como lanzar un dado gigante hasta que salga la cara ganadora.</p>
-          <p>El primero que lo logra sella el bloque con su nombre y cobra la {{ c.termino('recompensa', 'recompensa') }}. A esto se le llama {{ c.termino('pow', 'prueba de trabajo') }}.</p>
-        </div>
-        <dl class="capitulo__datos">
-          <div><dt>Escribanos</dt><dd>{{ NODOS|length }}</dd></div>
-          <div><dt>Ceros pedidos</dt><dd>{{ estado.dificultad }}</dd></div>
-          <div><dt>Recompensa</dt><dd>{{ RECOMPENSA }} TS</dd></div>
-        </dl>
-      </header>
-      <div class="capitulo__pieza" data-revela style="--retraso: 1">
-        {{ carrera(estado, cola=cola, id='carrera', tour=5, nivel=3, siguiente='/#cap-carrera') }}
-      </div>
-    </div>
-  </section>
-
-  {# ============================================================ IV · La cadena #}
-  <section class="capitulo capitulo--ancho pergamino" id="cap-cadena" aria-labelledby="cap-cadena-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">IV</p>
-        <p class="ceja">Capítulo IV · La cadena</p>
-        <h2 class="titulo-2" id="cap-cadena-titulo">Cada folio queda <em>cosido al anterior.</em></h2>
-        <div class="prosa">
-          <p>Cada {{ c.termino('bloque', 'bloque') }} guarda la {{ c.termino('huella-anterior', 'huella del bloque anterior') }}. Es el cordón que cose las hojas: si alguien cambia una, su huella cambia y el cordón ya no coincide con la hoja siguiente.</p>
-          <p>Por eso decimos que la cadena es {{ c.termino('inmutabilidad', 'inmutable') }}: para falsificar una hoja tendrías que rehacer, con todo su trabajo, todas las que vienen después.</p>
-        </div>
-      </header>
-      <div class="capitulo__pieza">
-        <div class="cadena-cabeza">
-          <p>Estos son los últimos {{ bloques|length }} folios reales, del más nuevo al más antiguo. Fíjate en el color: la «huella del folio anterior» de cada hoja es idéntica a la «huella» de la hoja de abajo. Cuando termina una carrera, el folio nuevo aparece aquí solo.</p>
-          {{ c.sello_goma('valida' if validacion.valida else 'invalida', 'Cadena íntegra' if validacion.valida else 'Cadena rota', grande=true, data_cadena_valida='', data_texto_ok='Cadena íntegra', data_texto_mal='Cadena rota') }}
-        </div>
-        <div class="legajo-marco" data-tour="8" data-tour-titulo="Hojas cosidas con un cordón" data-tour-texto="Cada folio repite, abajo, la huella del folio anterior. Los colores y los caracteres coinciden: eso es lo que une la cadena. Si uno cambia, deja de coincidir y salta a la vista." data-explica="Los folios reales de la cadena. El cordón une la «huella anterior» de cada hoja con la «huella» de la hoja de abajo." data-explica-titulo="El legajo">
-          <ol class="legajo" data-legajo-vivo data-max="6" role="list">
-            {%- for b in bloques %}
-            {{ c.folio(b, validacion.bloques[b.numero] if validacion.bloques|length > b.numero else none) }}
-            {%- endfor %}
-          </ol>
-        </div>
-        <div class="cadena-pie">
-          <a class="boton boton--secundario boton--flecha" href="{{ url_for('explorador') }}">{{ c.icono('cadena') }} Ver la cadena completa {{ c.icono('flecha') }}</a>
-          {%- if not validacion.valida %}
-          <p class="nota">Se encontraron {{ validacion.problemas|length }} problemas; el primero, en el folio {{ validacion.problemas[0].bloque }}: {{ validacion.problemas[0].mensaje }}</p>
-          {%- endif %}
-        </div>
-      </div>
-    </div>
-  </section>
-
-  {# ============================================================ V · Verificar #}
-  <section class="capitulo" id="cap-verificar" aria-labelledby="cap-verificar-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">V</p>
-        <p class="ceja">Capítulo V · Verificar</p>
-        <h2 class="titulo-2" id="cap-verificar-titulo">Cualquiera puede <em>comprobar un título.</em></h2>
-        <div class="prosa">
-          <p>No necesitas cuenta ni permiso. Escribe el folio que viene en el documento y revisamos, en menos de un segundo, que todo cuadre: firma, huella, trabajo y cordón.</p>
-        </div>
-      </header>
-      <div class="capitulo__pieza verificador" data-revela style="--retraso: 1">
-        <form class="tarjeta-papel verificador__forma" action="{{ url_for('verificar') }}" method="get" role="search" aria-label="Verificar un título" data-tour="9" data-tour-titulo="Verifica un título" data-tour-texto="Escribe un folio y te decimos si es auténtico, si está vigente o si la universidad lo revocó. Puedes probar con el folio de la credencial que seguimos." data-explica="Escribe un folio para comprobar una credencial. No hace falta cuenta." data-explica-titulo="Verificador">
-          <div class="verificador__fila">
-            <div class="campo campo--mono">
-              <label for="folio-buscar">Folio del título</label>
-              <input id="folio-buscar" name="folio" required placeholder="TS-UAN-13FEF4FB1630" pattern="[Tt][Ss]-[A-Za-z]{3}-[0-9A-Fa-f]{12}" title="TS, las 3 letras de la universidad y 12 caracteres del 0 al 9 o de la A a la F." autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="folio-ayuda" maxlength="24">
-            </div>
-            <button type="submit" class="boton boton--primario">{{ c.icono('lupa') }} Verificar</button>
+    <main class="escritorio" id="escritorio" tabindex="-1">
+      <nav class="secciones" aria-label="Secciones de Título Seguro">
+        <ul role="list" id="secciones"></ul>
+      </nav>
+      <div class="vistas" id="vistas">
+        <noscript>
+          <div class="aviso sin-js-aviso" data-nivel="aviso">
+            <p>Título Seguro es interactivo: necesita JavaScript activado para conversar con el simulador del libro de registros. Activa JavaScript y recarga la página; la API sigue disponible en <code>/api/…</code>.</p>
           </div>
-          <p class="campo__ayuda" id="folio-ayuda">Formato: TS-UAN-13FEF4FB1630. Mayúsculas o minúsculas, da igual.</p>
-          {%- if prota %}
-          <p class="verificador__ejemplo">¿No tienes uno a la mano? Prueba con el de nuestra credencial: <a href="{{ url_for('verificar_folio', folio=pc.folio) }}">{{ pc.folio }}</a></p>
-          {%- endif %}
-        </form>
-        <div class="pila" style="--pila: var(--e-4)">
-          <h3 class="titulo-4">Lo que revisamos</h3>
-          <ol class="lista-pasos" role="list">
-            <li><p><strong>Que el folio exista en la cadena.</strong><span>Si no está, nadie lo registró.</span></p></li>
-            <li><p><strong>Que la firma sea auténtica.</strong><span>Hecha con la llave de una universidad autorizada.</span></p></li>
-            <li><p><strong>Que la huella cuadre.</strong><span>Recalculada, debe dar exactamente la guardada.</span></p></li>
-            <li><p><strong>Que tenga el trabajo hecho.</strong><span>Su huella empieza con los ceros pedidos.</span></p></li>
-            <li><p><strong>Que siga cosido al folio anterior.</strong><span>El cordón coincide.</span></p></li>
-            <li><p><strong>Que nadie lo haya {{ c.termino('revocacion', 'revocado') }}.</strong><span>Y que toda la cadena siga íntegra.</span></p></li>
-          </ol>
-        </div>
+        </noscript>
       </div>
-    </div>
-  </section>
+    </main>
+  </div>
 
-  {# ============================================================ VI · Alterar #}
-  <section class="capitulo capitulo--ancho capitulo--alterar noche" id="cap-alterar" aria-labelledby="cap-alterar-titulo">
-    <span class="ojal capitulo__ojal" aria-hidden="true"></span>
-    <div class="envoltura capitulo__rejilla">
-      <header class="capitulo__cabeza" data-revela>
-        <p class="numeral capitulo__numeral" aria-hidden="true">VI</p>
-        <p class="ceja">Capítulo VI · Alterar</p>
-        <h2 class="titulo-2" id="cap-alterar-titulo">Ahora, <em>intenta hacer trampa.</em></h2>
-        <div class="prosa">
-          <p>En el laboratorio puedes cambiar una credencial ya registrada y ver qué pasa. Trabajas sobre una copia: la cadena real no se toca.</p>
-        </div>
-      </header>
-      <div class="capitulo__pieza" data-revela style="--retraso: 1">
-        <div class="laboratorio-tarjeta" data-tour="10" data-tour-titulo="El laboratorio" data-tour-texto="Aquí puedes alterar una copia de la cadena y comprobar que cualquier cambio rompe el sello, la huella o el cordón. La cadena real nunca se toca." data-explica="Lleva al laboratorio, donde alteras una copia de la cadena y ves cómo se detecta cada cambio." data-explica-titulo="Laboratorio">
-          {{ c.sello(prota.firma if prota else 'TITULO SEGURO', 'ok', 'Sello que se agrieta cuando alguien altera la credencial', 'l', letras=(pc.universidad if pc else 'TS'), data_agrietar='') }}
-          <div class="laboratorio-tarjeta__texto">
-            <h3>¿Y si alguien cambia <em>una palabra?</em></h3>
-            {%- if pc and pc.programa %}
-            <p>Imagina que alguien edita la credencial que seguimos: <del>{{ pc.programa }}</del> → <ins>{{ 'Medicina' if pc.programa != 'Medicina' else pc.programa ~ '*' }}</ins>. Su huella cambia, el sello ya no corresponde y el cordón con el folio siguiente se rompe.</p>
-            {%- else %}
-            <p>Si alguien cambia una sola palabra, la huella cambia, el sello ya no corresponde y el cordón con el folio siguiente se rompe.</p>
-            {%- endif %}
-            <ul role="list">
-              <li>Cambia el contenido de una credencial.</li>
-              <li>Cambia la huella guardada.</li>
-              <li>Cambia la firma.</li>
-            </ul>
-            <a class="laboratorio-tarjeta__ir" href="{{ url_for('laboratorio') }}">{{ c.icono('matraz') }} Entra al laboratorio {{ c.icono('flecha') }}</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-{% endblock %}
+  <div class="toasts" id="toasts"></div>
+  <div class="solo-lectores" id="anuncio-cortes" aria-live="polite" aria-atomic="true"></div>
+  <div class="solo-lectores" id="anuncio-urgente" aria-live="assertive" aria-atomic="true"></div>
+  <dialog class="dialogo" id="confirmar"></dialog>
+  <dialog class="hoja" id="ficha-nodo"></dialog>
+  <div class="glosario-pop" id="glosario-pop" hidden></div>
+  <div class="recorrido" id="recorrido" hidden></div>
+
+  <script type="application/json" id="datos-limites">{{ limites|tojson }}</script>
+</body>
+</html>

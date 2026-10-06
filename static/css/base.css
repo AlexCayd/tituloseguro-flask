@@ -1,0 +1,166 @@
+/* =============================================================================
+   TÍTULO SEGURO · base
+   reset · elementos · disposición general · utilidades · página de error
+   (requiere tokens.css antes: ahí se declara el orden de capas)
+   ============================================================================= */
+
+/* ------------------------------------------------------------------ reset */
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { min-block-size: 100dvh; }
+  img, picture, svg, video, canvas { display: block; max-inline-size: 100%; }
+  input, button, textarea, select { font: inherit; color: inherit; letter-spacing: inherit; }
+  button { cursor: pointer; background: none; border: 0; padding: 0; text-align: inherit; }
+  ul[role="list"], ol[role="list"] { list-style: none; padding: 0; }
+  table { border-collapse: collapse; }
+  dialog { padding: 0; border: 0; color: inherit; background: none; max-inline-size: none; max-block-size: none; }
+  p, h1, h2, h3, h4, li, dd, dt, figcaption { overflow-wrap: break-word; }
+  /* lo oculto queda oculto aunque un componente declare su propio display */
+  [hidden] { display: none !important; }
+}
+
+/* ------------------------------------------------------------------- base */
+@layer base {
+  html { scrollbar-gutter: stable; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  body {
+    font-family: var(--f-texto);
+    font-size: var(--t-m);
+    line-height: var(--lh-texto);
+    color: var(--texto);
+    background-color: var(--fondo);
+    /* retícula de laboratorio: 1 línea cada 32px, casi imperceptible */
+    background-image:
+      linear-gradient(var(--reticula) 1px, transparent 1px),
+      linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    accent-color: var(--acento);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--f-titular);
+    font-weight: 600;
+    line-height: var(--lh-titulo);
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  h1 { font-size: var(--t-2xl); }
+  h2 { font-size: var(--t-xl); }
+  h3 { font-size: var(--t-l); }
+  h4 { font-size: var(--t-m); }
+  p { text-wrap: pretty; }
+
+  a { color: var(--acento-texto); text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+  a:hover { text-decoration-thickness: 2px; }
+
+  code, kbd, samp, pre { font-family: var(--f-mono); font-size: 0.92em; }
+  strong { font-weight: 650; }
+  small { font-size: var(--t-xs); }
+  hr { border: 0; border-block-start: 1px solid var(--linea-suave); }
+
+  ::selection { background: color-mix(in oklab, var(--acento) 35%, transparent); color: var(--texto); }
+
+  /* foco: diseñado, visible en cualquier superficie (doble anillo) */
+  :focus-visible {
+    outline: 2px solid var(--acento);
+    outline-offset: 2px;
+    border-radius: var(--r-1);
+  }
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* scrollbars discretas */
+  * { scrollbar-width: thin; scrollbar-color: var(--sup-4) transparent; }
+}
+
+/* ------------------------------------------------------------ disposición */
+@layer disposicion {
+  .pila { display: flex; flex-direction: column; gap: var(--pila, var(--e-4)); }
+  .pila > * { margin: 0; }
+  .grupo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--grupo, var(--e-2)); }
+  .grupo--extremos { justify-content: space-between; }
+  .rejilla-auto {
+    display: grid;
+    gap: var(--e-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--min, 16rem)), 1fr));
+  }
+  .empuja { margin-inline-start: auto; }
+}
+
+/* -------------------------------------------------------------- utilidades */
+@layer utilidades {
+  .solo-lectores {
+    position: absolute !important;
+    inline-size: 1px; block-size: 1px;
+    overflow: hidden; clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .mono { font-family: var(--f-mono); font-variant-ligatures: none; }
+  .cifra { font-variant-numeric: tabular-nums; }
+  .etiqueta-instrumento {
+    font-family: var(--f-texto);
+    font-size: var(--t-2xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-etiqueta);
+    text-transform: uppercase;
+    color: var(--texto-3);
+  }
+  .texto-2 { color: var(--texto-2); }
+  .texto-3 { color: var(--texto-3); }
+  .acento { color: var(--acento-texto); }
+  .sin-js-aviso { padding: var(--e-5); max-inline-size: 60ch; margin: var(--e-6) auto; }
+
+  /* «saltar al contenido» */
+  .saltar {
+    position: fixed; inset-block-start: var(--e-2); inset-inline-start: var(--e-2);
+    z-index: calc(var(--z-toast) + 1);
+    padding: var(--e-2) var(--e-4);
+    background: var(--acento); color: var(--tinta-oscura);
+    border-radius: var(--r-2); font-weight: 600; text-decoration: none;
+    translate: 0 -200%;
+  }
+  .saltar:focus-visible { translate: 0 0; }
+}
+
+/* --------------------------------------------------------- página de error */
+@layer vistas {
+  .pagina-error {
+    display: grid; place-items: center;
+    padding: var(--e-6);
+    background-image:
+      radial-gradient(60rem 40rem at 50% 40%, color-mix(in oklab, var(--acento) 9%, transparent), transparent 70%),
+      linear-gradient(var(--reticula) 1px, transparent 1px),
+      linear-gradient(90deg, var(--reticula) 1px, transparent 1px);
+    background-size: auto, 32px 32px, 32px 32px;
+  }
+  .error-caja {
+    display: grid; gap: var(--e-4); justify-items: start;
+    max-inline-size: 34rem;
+    padding: var(--e-6);
+    background: var(--sup-1);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-3);
+    box-shadow: var(--sombra-2);
+  }
+  .error-codigo {
+    font-family: var(--f-titular);
+    font-size: clamp(4rem, 3rem + 6vw, 7rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--acento-texto);
+    font-variant-numeric: tabular-nums;
+  }
+  .error-orbita { inline-size: 7rem; color: var(--texto-3); }
+  .error-orbita .roto { color: var(--rechazado); }
+  .error-caja h1 { font-size: var(--t-xl); }
+  .error-caja p { color: var(--texto-2); }
+}

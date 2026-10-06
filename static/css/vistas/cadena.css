@@ -1,0 +1,431 @@
+/* VISTA · Explorador de cadena — la copia de un nodo como objeto físico: tarjetas enlazadas
+   por eslabones, detalle con «cómo se calcula esta huella» y manipulación en vivo.
+   Todo en @layer vistas y acotado a la vista. Responde a su contenedor (vista). */
+
+@import url("_bloque.css");
+
+@layer vistas {
+
+  .vista[data-vista="cadena"] .cad { display: grid; gap: var(--e-5); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-girado { rotate: 180deg; }
+  .vista[data-vista="cadena"] .cad-mando__nota { font-size: var(--t-xs); margin-inline-start: auto; }
+
+  /* ================================================================ mando */
+  .vista[data-vista="cadena"] .cad-mando__cuerpo {
+    display: grid; gap: var(--e-4) var(--e-5);
+    grid-template-columns: minmax(12rem, 22rem) minmax(0, 1fr);
+    align-items: end;
+  }
+  .vista[data-vista="cadena"] .cad-mando__lecturas {
+    display: flex; flex-wrap: wrap; gap: var(--e-3) var(--e-6); align-items: end;
+    min-block-size: var(--objetivo);
+  }
+  .vista[data-vista="cadena"] .cad-mando__lecturas .lectura__valor { overflow: visible; }
+  .vista[data-vista="cadena"] .cad-mando__lecturas dt { display: inline-flex; align-items: center; gap: var(--e-1); }
+  .vista[data-vista="cadena"] .cad-tono {
+    inline-size: 0.6rem; block-size: 0.6rem; border-radius: 50%;
+    background: oklch(0.8 0.12 var(--tono, 255));
+    box-shadow: 0 0 0 2px var(--sup-1), 0 0 0 3px oklch(0.8 0.12 var(--tono, 255) / 0.45);
+  }
+  .vista[data-vista="cadena"] .cad-comparacion {
+    grid-column: 2; align-self: center;
+    display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-2); align-items: baseline;
+    font-size: var(--t-s); color: var(--texto-2);
+  }
+  .vista[data-vista="cadena"] .cad-comparacion strong { color: var(--texto); }
+  .vista[data-vista="cadena"] .cad-comparacion__icono { align-self: center; color: var(--valido); }
+  .vista[data-vista="cadena"] .cad-comparacion__icono[data-nivel="aviso"] { color: var(--advertencia); }
+  .vista[data-vista="cadena"] .cad-comparacion__icono[data-nivel="error"] { color: var(--rechazado); }
+  @container vista (max-width: 640px) {
+    .vista[data-vista="cadena"] .cad-mando__cuerpo { grid-template-columns: minmax(0, 1fr); }
+    .vista[data-vista="cadena"] .cad-comparacion { grid-column: 1; }
+    .vista[data-vista="cadena"] .cad-mando__lecturas { gap: var(--e-3) var(--e-5); }
+  }
+
+  .vista[data-vista="cadena"] .cad-mando__nombre { margin-block-start: var(--e-1); font-size: var(--t-xs); color: var(--texto-2); text-wrap: balance; }
+  .vista[data-vista="cadena"] .cad-mando__nombre:empty { display: none; }
+
+  /* ============================================================ veredicto */
+  .vista[data-vista="cadena"] .cad-veredicto:empty,
+  .vista[data-vista="cadena"] .cad-informe:empty { display: none; }
+  /* plegado bajo un informe de alteración: una línea que no compite con la propagación */
+  .vista[data-vista="cadena"] .cad-veredicto__plegable {
+    padding-inline: var(--e-4);
+    background: color-mix(in oklab, var(--rechazado) 5%, var(--sup-1));
+    border: 1px solid color-mix(in oklab, var(--rechazado) 30%, transparent);
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="cadena"] .cad-veredicto__plegable > summary { font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-veredicto__plegable > summary > .icono { --tam-icono: 1rem; flex: none; color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-veredicto__linea { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vista[data-vista="cadena"] .cad-veredicto__linea strong { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-veredicto__desplegado { padding-block: var(--e-2) var(--e-4); }
+  @container vista (max-width: 560px) {
+    .vista[data-vista="cadena"] .cad-veredicto__linea { white-space: normal; }
+  }
+  .vista[data-vista="cadena"] .cad-informe__caja > .etiqueta-instrumento { margin-block-end: calc(-1 * var(--e-2)); }
+  .vista[data-vista="cadena"] .cad-veredicto__cuerpo { flex: 1; min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-veredicto__titular { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-4); align-items: center; justify-content: space-between; }
+  .vista[data-vista="cadena"] .cad-veredicto__accion { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-4); align-items: center; }
+  .vista[data-vista="cadena"] .cad-veredicto__accion .campo__ayuda { flex: 1 1 18rem; }
+
+  /* ============================================== informe de una manipulación */
+  .vista[data-vista="cadena"] .cad-informe__caja {
+    --i: var(--rechazado);
+    display: grid; gap: var(--e-4);
+    padding: var(--e-4) var(--e-5);
+    background: color-mix(in oklab, var(--i) 6%, var(--sup-1));
+    border: 1px solid color-mix(in oklab, var(--i) 35%, transparent);
+    border-inline-start: 3px solid var(--i);
+    border-radius: var(--r-3);
+  }
+  .vista[data-vista="cadena"] .cad-informe__caja[data-nivel="ok"] { --i: var(--valido); }
+  .vista[data-vista="cadena"] .cad-informe__caja[data-nivel="aviso"] { --i: var(--advertencia); }
+  .vista[data-vista="cadena"] .cad-informe__cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-3); align-items: start; }
+  .vista[data-vista="cadena"] .cad-informe__cabecera h3 { font-size: var(--t-l); }
+  .vista[data-vista="cadena"] .cad-informe__icono {
+    display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: 50%;
+    color: var(--i); background: color-mix(in oklab, var(--i) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--i) 40%, transparent);
+  }
+  .vista[data-vista="cadena"] .cad-propagacion { display: grid; gap: 2px; }
+  .vista[data-vista="cadena"] .cad-propagacion li {
+    display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: var(--e-3); align-items: center;
+    padding: var(--e-1) var(--e-3) var(--e-1) 0;
+    font-size: var(--t-s);
+    border-block-end: 1px dotted var(--linea-suave);
+  }
+  .vista[data-vista="cadena"] .cad-propagacion li:last-child { border-block-end: 0; }
+  .vista[data-vista="cadena"] .cad-propagacion code { color: var(--rechazado); font-size: var(--t-xs); }
+  .vista[data-vista="cadena"] .cad-propagacion__ir {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-block-size: var(--objetivo); padding: 0 var(--e-2);
+    font-family: var(--f-mono); font-size: var(--t-s); font-weight: 600;
+    color: var(--texto); border-radius: var(--r-2);
+  }
+  .vista[data-vista="cadena"] button.cad-propagacion__ir { background: color-mix(in oklab, var(--rechazado) 14%, transparent); }
+  .vista[data-vista="cadena"] button.cad-propagacion__ir:hover { background: color-mix(in oklab, var(--rechazado) 24%, transparent); }
+  .vista[data-vista="cadena"] .cad-propagacion li[data-tipo="arrastrado"] .cad-propagacion__ir { color: var(--advertencia); }
+  .vista[data-vista="cadena"] .cad-propagacion li[data-tipo="veredicto"] .cad-propagacion__ir { color: var(--rechazado); }
+
+  /* ================================================================ carril */
+  .vista[data-vista="cadena"] .cad-carril-panel {
+    display: grid; gap: var(--e-3);
+    padding: var(--e-4) 0 var(--e-3);
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-3);
+    min-inline-size: 0;
+  }
+  .vista[data-vista="cadena"] .cad-carril__cabecera { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-4); align-items: end; justify-content: space-between; padding-inline: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-carril__titulo { font-size: var(--t-xl); }
+  .vista[data-vista="cadena"] .cad-carril__cuenta { font-size: var(--t-xs); }
+  .vista[data-vista="cadena"] .cad-carril__estado { padding-inline: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-carril__estado:empty { display: none; }
+
+  .vista[data-vista="cadena"] .cad-carril {
+    display: flex; align-items: center; gap: var(--e-3);
+    overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+    padding: var(--e-4) var(--e-4) var(--e-5);
+    scroll-padding-inline: var(--e-6);
+    cursor: grab;
+    /* la vía: una línea fina por la que «corren» los bloques */
+    background:
+      linear-gradient(var(--linea-suave), var(--linea-suave)) 0 calc(50% - 0.25rem) / 100% 1px no-repeat,
+      var(--fondo);
+    border-block: 1px solid var(--linea-suave);
+  }
+  .vista[data-vista="cadena"] .cad-carril[data-arrastrando] { cursor: grabbing; user-select: none; }
+  .vista[data-vista="cadena"] .cad-carril[aria-busy="true"] .cad-lista { opacity: 0.75; transition: opacity var(--dur-micro) linear; }
+  .vista[data-vista="cadena"] .cad-anteriores { flex: none; white-space: nowrap; }
+  .vista[data-vista="cadena"] .cad-lista { display: flex; align-items: center; margin: 0; padding: 0; list-style: none; }
+  .vista[data-vista="cadena"] .cad-item { display: flex; align-items: center; flex: none; }
+  .vista[data-vista="cadena"] .cad-item .blq-eslabon { margin-inline: 2px; }
+  .vista[data-vista="cadena"] .cad-item--esqueleto { inline-size: 9.75rem; block-size: 7.5rem; margin-inline-end: 3.25rem; }
+  .vista[data-vista="cadena"] .cad-item--esqueleto .esqueleto { inline-size: 100%; block-size: 100%; border-radius: var(--r-2); }
+
+  /* ---------------------------------------------------------------- tarjeta */
+  .vista[data-vista="cadena"] .cad-tarjeta {
+    --t-borde: var(--linea);
+    --t-lomo: var(--valido);
+    position: relative;
+    display: grid; grid-template-rows: auto auto 1fr auto; gap: var(--e-1);
+    inline-size: 9.75rem; min-block-size: 7.5rem;
+    padding: var(--e-3) var(--e-3) var(--e-2) calc(var(--e-3) + 4px);
+    text-align: start;
+    color: var(--texto);
+    background: var(--sup-2);
+    border: 1px solid var(--t-borde);
+    border-radius: var(--r-2);
+    box-shadow: var(--sombra-1);
+    cursor: pointer;
+    transition: background-color var(--dur-micro) var(--curva-func), border-color var(--dur-micro) var(--curva-func),
+                box-shadow var(--dur-micro) var(--curva-func), translate var(--dur-micro) var(--curva-func);
+  }
+  /* el lomo: macizo si es válido, discontinuo si no (forma, no solo color) */
+  .vista[data-vista="cadena"] .cad-tarjeta::before {
+    content: ""; position: absolute; inset-block: 6px; inset-inline-start: 4px; inline-size: 3px;
+    border-radius: 2px; background: var(--t-lomo);
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta:hover { background: var(--sup-3); }
+  .vista[data-vista="cadena"] .cad-tarjeta:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+  .vista[data-vista="cadena"] .cad-tarjeta[aria-pressed="true"] {
+    --t-borde: var(--acento);
+    background: color-mix(in oklab, var(--acento) 8%, var(--sup-2));
+    box-shadow: var(--acento-brillo);
+    translate: 0 -3px;
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta__cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-tarjeta__num { font-family: var(--f-titular); font-size: var(--t-xl); font-weight: 650; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .vista[data-vista="cadena"] .cad-tarjeta__estado {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: var(--t-2xs); font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--valido);
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta__estado .icono { --tam-icono: 0.85rem; }
+  .vista[data-vista="cadena"] .cad-tarjeta__hash { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-tarjeta__meta { font-size: var(--t-xs); color: var(--texto-3); align-self: end; }
+  .vista[data-vista="cadena"] .cad-tarjeta__quien { font-family: var(--f-titular); font-weight: 650; color: var(--texto-2); letter-spacing: 0.01em; }
+  .vista[data-vista="cadena"] .cad-tarjeta__comp {
+    margin: var(--e-1) calc(-1 * var(--e-3) + 2px) calc(-1 * var(--e-2) + 2px) calc(-1 * var(--e-3) - 2px);
+    padding: 2px var(--e-3);
+    font-family: var(--f-mono); font-size: var(--t-2xs); font-weight: 600;
+    border-block-start: 1px solid var(--linea-suave);
+    border-end-start-radius: var(--r-2); border-end-end-radius: var(--r-2);
+    color: var(--valido); background: color-mix(in oklab, var(--valido) 9%, transparent);
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta__comp[data-comp="difiere"] { color: var(--rechazado); background: color-mix(in oklab, var(--rechazado) 12%, transparent); }
+  .vista[data-vista="cadena"] .cad-tarjeta__comp[data-comp="contenido"] { color: var(--advertencia); background: color-mix(in oklab, var(--advertencia) 12%, transparent); }
+  .vista[data-vista="cadena"] .cad-tarjeta__comp[data-comp="falta"] { color: var(--obsoleto); background: transparent; text-decoration: line-through; }
+
+  /* inválido: borde discontinuo, lomo discontinuo, trama diagonal y ✕ */
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="invalido"] {
+    --t-borde: color-mix(in oklab, var(--rechazado) 70%, transparent);
+    --t-lomo: repeating-linear-gradient(180deg, var(--rechazado) 0 5px, transparent 5px 9px);
+    border-style: dashed;
+    background:
+      repeating-linear-gradient(135deg, color-mix(in oklab, var(--rechazado) 10%, transparent) 0 6px, transparent 6px 12px),
+      var(--sup-2);
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="invalido"] .cad-tarjeta__estado { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="invalido"][aria-pressed="true"] { --t-borde: var(--rechazado); box-shadow: 0 0 0 1px var(--rechazado), 0 0 24px -6px color-mix(in oklab, var(--rechazado) 55%, transparent); }
+  /* cuelga de un inválido: válido por sí solo, pero en entredicho */
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="arrastrado"] {
+    --t-lomo: color-mix(in oklab, var(--advertencia) 70%, transparent);
+    background:
+      repeating-linear-gradient(135deg, color-mix(in oklab, var(--advertencia) 6%, transparent) 0 3px, transparent 3px 9px),
+      var(--sup-2);
+  }
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="arrastrado"] .cad-tarjeta__estado { color: var(--advertencia); }
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="sin-evaluar"] { --t-lomo: var(--obsoleto); }
+  .vista[data-vista="cadena"] .cad-tarjeta[data-estado="sin-evaluar"] .cad-tarjeta__estado { color: var(--obsoleto); }
+  .vista[data-vista="cadena"] .cad-item[data-genesis] .cad-tarjeta { box-shadow: var(--sombra-1), inset 0 0 0 3px var(--sup-2), inset 0 0 0 4px var(--linea); }
+
+  .vista[data-vista="cadena"] .cad-carril__pie { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-5); align-items: center; justify-content: space-between; padding-inline: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-carril__ayuda { font-size: var(--t-xs); max-inline-size: 60ch; }
+  .vista[data-vista="cadena"] .cad-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-4); font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-leyenda li { display: inline-flex; align-items: center; gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-leyenda .blq-eslabon__svg { inline-size: 1.75rem; block-size: 0.875rem; }
+  .vista[data-vista="cadena"] .cad-leyenda__marca { inline-size: 0.9rem; block-size: 1.1rem; border-radius: 2px; border: 1px solid var(--linea); background: var(--sup-2); box-shadow: inset 3px 0 0 var(--valido); }
+  .vista[data-vista="cadena"] .cad-leyenda__marca[data-tipo="invalido"] { border: 1px dashed var(--rechazado); box-shadow: none; background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--rechazado) 30%, transparent) 0 2px, transparent 2px 4px); }
+  .vista[data-vista="cadena"] .cad-leyenda__marca[data-tipo="arrastrado"] { box-shadow: inset 3px 0 0 var(--advertencia); background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--advertencia) 18%, transparent) 0 2px, transparent 2px 4px); }
+
+  /* móvil: la cadena cae en vertical (el carril tiene su propio scroll, contenido) */
+  @container vista (max-width: 560px) {
+    .vista[data-vista="cadena"] .cad-carril {
+      flex-direction: column; align-items: stretch;
+      overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+      max-block-size: min(32rem, 70dvh);
+      cursor: auto;
+      background: linear-gradient(var(--linea-suave), var(--linea-suave)) 1.4rem 0 / 1px 100% no-repeat, var(--fondo);
+    }
+    .vista[data-vista="cadena"] .cad-lista { flex-direction: column; align-items: stretch; }
+    .vista[data-vista="cadena"] .cad-item { flex-direction: column; align-items: stretch; }
+    .vista[data-vista="cadena"] .cad-item .blq-eslabon { flex-direction: row; gap: var(--e-2); margin: 2px 0 2px 0.35rem; }
+    .vista[data-vista="cadena"] .cad-item .blq-eslabon__svg { rotate: 90deg; inline-size: 2.25rem; }
+    .vista[data-vista="cadena"] .cad-tarjeta {
+      inline-size: 100%; min-block-size: 0;
+      grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto;
+      column-gap: var(--e-3);
+    }
+    .vista[data-vista="cadena"] .cad-tarjeta__cab { grid-column: 1 / -1; }
+    .vista[data-vista="cadena"] .cad-tarjeta__comp { grid-column: 1 / -1; }
+    .vista[data-vista="cadena"] .cad-tarjeta[aria-pressed="true"] { translate: 3px 0; }
+    .vista[data-vista="cadena"] .cad-item--esqueleto { inline-size: 100%; block-size: 4.5rem; margin: 0 0 var(--e-5); }
+  }
+
+  /* ================================================================ detalle */
+  .vista[data-vista="cadena"] .cad-detalle { display: grid; gap: var(--e-5); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-detalle:empty { display: none; }
+  .vista[data-vista="cadena"] .cad-detalle__cabecera { display: flex; flex-wrap: wrap; align-items: end; gap: var(--e-2) var(--e-4); }
+  .vista[data-vista="cadena"] .cad-detalle__titulo { font-size: var(--t-2xl); letter-spacing: -0.025em; line-height: 1; }
+  .vista[data-vista="cadena"] .cad-detalle__chips { padding-block-end: 2px; }
+  .vista[data-vista="cadena"] .cad-detalle__rejilla { display: grid; gap: var(--e-5); grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; }
+  @container vista (max-width: 900px) {
+    .vista[data-vista="cadena"] .cad-detalle__rejilla { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* campos del bloque */
+  .vista[data-vista="cadena"] .cad-campos { display: grid; border-block-start: 1px solid var(--linea-suave); }
+  .vista[data-vista="cadena"] .cad-campo {
+    display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: var(--e-1) var(--e-4);
+    padding: var(--e-3) 0;
+    border-block-end: 1px solid var(--linea-suave);
+  }
+  .vista[data-vista="cadena"] .cad-campo dt { display: grid; gap: 2px; align-content: start; }
+  .vista[data-vista="cadena"] .cad-campo__nombre { font-size: var(--t-s); color: var(--acento-texto); font-weight: 600; }
+  .vista[data-vista="cadena"] .cad-campo__etq { font-size: var(--t-xs); color: var(--texto-3); }
+  .vista[data-vista="cadena"] .cad-campo dd { display: grid; gap: var(--e-1); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-campo__valor { min-inline-size: 0; font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-campo__nota { font-size: var(--t-xs); color: var(--texto-3); }
+  .vista[data-vista="cadena"] .cad-campo__hash { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+  @container vista (max-width: 520px) {
+    .vista[data-vista="cadena"] .cad-campo { grid-template-columns: minmax(0, 1fr); }
+  }
+  .vista[data-vista="cadena"] .cad-check { display: flex; gap: var(--e-2); align-items: start; font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-check > .icono { --tam-icono: 1rem; margin-block-start: 1px; }
+  .vista[data-vista="cadena"] .cad-check[data-ok="si"] > .icono { color: var(--valido); }
+  .vista[data-vista="cadena"] .cad-check[data-ok="no"] > .icono { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-check[data-ok="no"] strong { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-check[data-ok="si"] strong { color: var(--valido); }
+
+  .vista[data-vista="cadena"] .cad-genesis { display: grid; gap: var(--e-2); padding: var(--e-3) var(--e-4); background: var(--fondo); border: 1px solid var(--linea-suave); border-radius: var(--r-2); }
+  .vista[data-vista="cadena"] .cad-genesis code { color: var(--acento-texto); }
+
+  /* «cómo se calcula esta huella» */
+  .vista[data-vista="cadena"] .cad-huella {
+    margin: 0; display: grid; gap: var(--e-4);
+    padding: var(--e-4) var(--e-5);
+    background: var(--fondo);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-3);
+    min-inline-size: 0;
+  }
+  .vista[data-vista="cadena"] .cad-huella__titulo { font-family: var(--f-titular); font-weight: 600; font-size: var(--t-l); }
+  .vista[data-vista="cadena"] .cad-pasos { display: grid; }
+  .vista[data-vista="cadena"] .cad-paso { position: relative; display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--e-3); padding-block-end: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-paso:last-child { padding-block-end: 0; }
+  .vista[data-vista="cadena"] .cad-paso:not(:last-child)::before {
+    content: ""; position: absolute; inset-inline-start: calc(0.875rem - 1px); inset-block: 1.9rem 0.2rem;
+    border-inline-start: 2px solid var(--linea);
+  }
+  .vista[data-vista="cadena"] .cad-paso > div { display: grid; gap: var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-paso__num {
+    display: grid; place-items: center; inline-size: 1.75rem; block-size: 1.75rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 600;
+    color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .vista[data-vista="cadena"] .cad-paso__et { font-size: var(--t-s); font-weight: 600; }
+  .vista[data-vista="cadena"] .cad-paso__et small { font-weight: 400; color: var(--texto-3); }
+  .vista[data-vista="cadena"] .cad-paso__nota { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-claves { display: flex; flex-wrap: wrap; gap: 4px; }
+  .vista[data-vista="cadena"] .cad-claves li code {
+    display: inline-block; padding: 1px 6px; font-size: var(--t-2xs);
+    color: var(--texto-2); background: var(--sup-2); border: 1px solid var(--linea-suave); border-radius: var(--r-1);
+  }
+  .vista[data-vista="cadena"] .cad-claves__fuera code { color: var(--rechazado); text-decoration: line-through; border-style: dashed; background: transparent; }
+  .vista[data-vista="cadena"] .cad-canon {
+    max-block-size: 13rem; overflow: auto; overscroll-behavior: contain;
+    margin: 0; padding: var(--e-2) var(--e-3);
+    font-size: var(--t-2xs); line-height: 1.65;
+    white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-all;
+    color: var(--texto-3);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+    font-variant-ligatures: none;
+  }
+  .vista[data-vista="cadena"] .cad-canon code { font-size: inherit; }
+  .vista[data-vista="cadena"] .cad-canon__clave { color: var(--acento-texto); font-weight: 600; }
+  .vista[data-vista="cadena"] .cad-canon__valor { color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-huella__calc,
+  .vista[data-vista="cadena"] .cad-huella__hex,
+  .vista[data-vista="cadena"] .cad-huella__guardada {
+    padding: var(--e-2) var(--e-3); background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-2);
+  }
+  .vista[data-vista="cadena"] .cad-huella__calc:has(> .aviso) { padding: 0; border: 0; background: none; }
+  .vista[data-vista="cadena"] .cad-huella__calc .esqueleto { block-size: 2.5rem; }
+  .vista[data-vista="cadena"] .cad-huella__calc .cad-huella__hex { padding: 0; border: 0; }
+  .vista[data-vista="cadena"] .cad-huella__guardada { display: grid; gap: 2px; border-style: dashed; border-color: color-mix(in oklab, var(--rechazado) 45%, transparent); }
+  .vista[data-vista="cadena"] .cad-huella__veredicto { display: grid; gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-huella__veredicto .cad-check { font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-huella__avalancha { display: grid; gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-huella__avalancha:empty { display: none; }
+  .vista[data-vista="cadena"] .cad-paso .boton { justify-self: start; }
+
+  /* secciones (transacciones, PoS) */
+  .vista[data-vista="cadena"] .cad-seccion { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-seccion__titulo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); font-size: var(--t-l); }
+  .vista[data-vista="cadena"] .cad-tabla td { font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-ruta { display: inline-flex; align-items: center; gap: var(--e-1); white-space: nowrap; }
+  .vista[data-vista="cadena"] .cad-ruta .icono { --tam-icono: 0.85rem; color: var(--texto-3); }
+  .vista[data-vista="cadena"] .cad-seccion__nota { max-inline-size: 72ch; font-size: var(--t-xs); margin-block-start: calc(-1 * var(--e-2)); }
+  .vista[data-vista="cadena"] .cad-recompensa { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 0 0.25em; }
+  .vista[data-vista="cadena"] .cad-pos { display: grid; gap: var(--e-5); grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
+  @container vista (max-width: 760px) { .vista[data-vista="cadena"] .cad-pos { grid-template-columns: minmax(0, 1fr); } }
+  .vista[data-vista="cadena"] .cad-pos__votos, .vista[data-vista="cadena"] .cad-pos__apuestas { display: grid; gap: var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="cadena"] .cad-pos__castigos-t { margin-block-start: var(--e-3); }
+  .vista[data-vista="cadena"] .cad-apuestas { display: grid; grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr)); gap: 4px; }
+  .vista[data-vista="cadena"] .cad-apuestas__sigla { font-family: var(--f-titular); font-weight: 650; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+  .vista[data-vista="cadena"] .cad-apuestas li {
+    display: flex; justify-content: space-between; gap: var(--e-2);
+    padding: 3px var(--e-2); font-size: var(--t-xs);
+    background: var(--sup-2); border-radius: var(--r-1); border-inline-start: 2px solid var(--acento-borde);
+  }
+  .vista[data-vista="cadena"] .cad-castigos { display: grid; gap: 4px; font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-pos__nada { font-size: var(--t-xs); }
+
+  /* ============================================================ manipulación */
+  .vista[data-vista="cadena"] .cad-manip { border: 1px dashed color-mix(in oklab, var(--rechazado) 45%, var(--linea)); border-radius: var(--r-3); padding-inline: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-manip > summary { color: var(--texto); gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-manip > summary > .icono { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-manip__cuerpo { display: grid; gap: var(--e-4); padding-block: var(--e-2) var(--e-4); }
+  .vista[data-vista="cadena"] .cad-manip__tipos { display: grid; gap: var(--e-2); grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+  .vista[data-vista="cadena"] .cad-manip__tipo {
+    position: relative;
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-3); align-items: start;
+    min-block-size: var(--objetivo);
+    padding: var(--e-3);
+    background: var(--sup-1); border: 1px solid var(--linea); border-radius: var(--r-2);
+    cursor: pointer;
+    transition: border-color var(--dur-micro) var(--curva-func), background-color var(--dur-micro) var(--curva-func);
+  }
+  .vista[data-vista="cadena"] .cad-manip__tipo:hover { border-color: var(--linea-fuerte); }
+  .vista[data-vista="cadena"] .cad-manip__tipo input { margin-block-start: 3px; inline-size: 1.05rem; block-size: 1.05rem; accent-color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-manip__tipo:has(input:checked) { border-color: var(--rechazado); background: color-mix(in oklab, var(--rechazado) 8%, var(--sup-1)); }
+  .vista[data-vista="cadena"] .cad-manip__tipo:has(input:focus-visible) { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .vista[data-vista="cadena"] .cad-manip__tipo:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+  .vista[data-vista="cadena"] .cad-manip__tipo-texto { display: grid; gap: 2px; font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-manip__tipo-texto span { font-size: var(--t-xs); color: var(--texto-2); }
+  .vista[data-vista="cadena"] .cad-manip__prevista { display: grid; gap: var(--e-4); }
+  .vista[data-vista="cadena"] .cad-manip__prevista:empty { display: none; }
+  .vista[data-vista="cadena"] .cad-manip__espera { display: grid; gap: var(--e-2); }
+  .vista[data-vista="cadena"] .cad-manip__lista { display: grid; gap: var(--e-1); font-size: var(--t-s); }
+  .vista[data-vista="cadena"] .cad-manip__lista li { display: flex; gap: var(--e-2); align-items: baseline; }
+  .vista[data-vista="cadena"] .cad-manip__lista code { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-manip__pie { display: flex; justify-content: flex-end; }
+
+  /* diff antes / después */
+  .vista[data-vista="cadena"] .cad-diff { display: grid; gap: 2px; }
+  .vista[data-vista="cadena"] .cad-diff__campo { font-size: var(--t-s); margin-block-end: var(--e-1); }
+  .vista[data-vista="cadena"] .cad-diff__campo code { color: var(--acento-texto); }
+  .vista[data-vista="cadena"] .cad-diff__fila {
+    display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--e-3); align-items: baseline;
+    padding: var(--e-2) var(--e-3);
+    font-size: var(--t-s);
+    background: var(--sup-1);
+    border-inline-start: 3px solid var(--linea-fuerte);
+  }
+  .vista[data-vista="cadena"] .cad-diff__fila[data-lado="despues"] { border-inline-start-color: var(--rechazado); background: color-mix(in oklab, var(--rechazado) 6%, var(--sup-1)); }
+  .vista[data-vista="cadena"] .cad-diff__lado { font-size: var(--t-2xs); font-weight: 650; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: var(--texto-3); }
+  .vista[data-vista="cadena"] .cad-diff__fila[data-lado="despues"] .cad-diff__lado { color: var(--rechazado); }
+  .vista[data-vista="cadena"] .cad-diff__fila code { overflow-wrap: anywhere; }
+  .vista[data-vista="cadena"] .cad-diff__fila[data-lado="antes"] .blq-dif { color: var(--texto); background: color-mix(in oklab, var(--texto) 12%, transparent); }
+  @container vista (max-width: 520px) {
+    .vista[data-vista="cadena"] .cad-diff__fila { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  }
+}
+
+/* ===== el anillo: qué copia se explora y con cuál se compara (fuera de la vista) ===== */
+@layer vistas {
+  .nodo.cad-explorado .nodo__rol { stroke: var(--texto); stroke-width: 2; stroke-dasharray: none; animation: none; }
+  .nodo.cad-comparado .nodo__rol { stroke: var(--texto-2); stroke-width: 1.6; stroke-dasharray: 3 3; animation: none; }
+}

@@ -1,0 +1,126 @@
+/* VISTA · Transacciones — formulario + «qué se firma» a la izquierda; pendientes y atajos
+   a la derecha. Responde a su contenedor (vista). */
+
+@layer vistas {
+
+  .tx-rejilla { display: grid; gap: var(--e-5); grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: start; }
+  @container vista (max-width: 940px) { .tx-rejilla { grid-template-columns: 1fr; } }
+  .tx-col { display: grid; gap: var(--e-5); min-inline-size: 0; }
+
+  /* ------------------------------------------------------------ formulario */
+  /* tarifas orientativas: tarjetas-radio que envuelven en vez de apretarse */
+  .tx-tarifas { grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr)); }
+  .tx-tarifas label { display: grid; gap: 1px; place-items: start; text-align: start; min-block-size: 3.25rem; padding: var(--e-2) var(--e-3); }
+  .tx-tarifas__nombre { font-size: var(--t-s); line-height: 1.2; }
+  .tx-tarifas__monto { font-size: var(--t-2xs); font-weight: 500; color: var(--texto-3); }
+  .tx-tarifas label:has(input:checked) .tx-tarifas__monto { color: var(--acento-texto); }
+  .tx-pend__que { font-size: var(--t-2xs); color: var(--texto-3); margin-inline-start: var(--e-1); }
+  .tx-campos { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 0.8fr); gap: var(--e-3); align-items: start; }
+  .tx-campos__flecha { padding-block-start: 2.1rem; color: var(--acento-texto); }
+  @container vista (max-width: 520px) {
+    .tx-campos { grid-template-columns: 1fr 1fr; }
+    .tx-campos__flecha { display: none; }
+    .tx-campos > .campo:last-child { grid-column: 1 / -1; }
+  }
+
+  .tx-gastable { display: grid; gap: 2px; padding: var(--e-3) var(--e-4); background: var(--fondo); border-radius: var(--r-2); border: 1px solid var(--linea-suave); }
+  .tx-gastable:empty { display: none; }
+  .tx-gastable__cifra { font-size: var(--t-l); color: var(--valido); }
+  .tx-gastable__desglose { font-size: var(--t-xs); }
+  .tx-gastable__aviso { display: flex; gap: var(--e-2); align-items: start; font-size: var(--t-xs); color: var(--advertencia); }
+
+  /* --------------------------------------------- «qué se firma, exactamente» */
+  .tx-firma {
+    margin: 0;
+    display: grid; gap: var(--e-3);
+    padding: var(--e-4);
+    background: var(--fondo);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-3);
+  }
+  .tx-firma__titulo { font-family: var(--f-titular); font-weight: 600; font-size: var(--t-m); }
+  .tx-firma__pasos { display: grid; gap: 0; }
+  .tx-firma__paso { position: relative; display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--e-3); padding-block-end: var(--e-4); }
+  .tx-firma__paso:last-child { padding-block-end: 0; }
+  /* la línea del proceso: mensaje → huella → firma */
+  .tx-firma__paso:not(:last-child)::before {
+    content: ""; position: absolute; inset-inline-start: calc(0.875rem - 1px); inset-block: 1.9rem 0.2rem;
+    border-inline-start: 2px solid var(--linea);
+  }
+  .tx-firma__num {
+    display: grid; place-items: center;
+    inline-size: 1.75rem; block-size: 1.75rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 600;
+    color: var(--acento-texto); background: var(--acento-tenue);
+    box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .tx-firma__et { font-size: var(--t-s); font-weight: 600; margin-block-end: var(--e-1); }
+  .tx-firma__et small { font-weight: 400; color: var(--texto-3); }
+  .tx-firma__mensaje, .tx-firma__huella {
+    display: block;
+    padding: var(--e-2) var(--e-3);
+    font-size: var(--t-xs); line-height: 1.7;
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-2);
+    overflow-wrap: anywhere;
+    font-variant-ligatures: none;
+  }
+  .tx-tok__clave { color: var(--texto-3); }
+  .tx-tok__valor { color: var(--acento-texto); border-radius: 3px; padding-inline: 1px; }
+  .tx-firma__hex { color: var(--texto); }
+  .tx-firma__espera { display: flex; gap: var(--e-2); align-items: center; font-size: var(--t-xs); color: var(--texto-3); padding: var(--e-2) 0; }
+  .tx-firma__hex-firma { padding: var(--e-2) var(--e-3); background: var(--sup-1); border: 1px solid color-mix(in oklab, var(--valido) 35%, transparent); border-radius: var(--r-2); }
+  .tx-firma__coincide { display: flex; gap: var(--e-2); align-items: start; margin-block-start: var(--e-2); font-size: var(--t-xs); }
+  .tx-firma__coincide[data-ok="si"] { color: var(--valido); }
+  .tx-firma__coincide[data-ok="no"] { color: var(--texto-2); }
+  .tx-firma__nota { font-size: var(--t-xs); color: var(--texto-2); padding-block-start: var(--e-3); border-block-start: 1px dashed var(--linea); }
+
+  .tx-acciones { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--e-3); }
+  .tx-trampas { display: grid; gap: var(--e-1); }
+
+  .tx-resultado:empty { display: none; }
+  .tx-veredicto .pila { min-inline-size: 0; }
+  .tx-veredicto__codigo { font-size: var(--t-2xs); }
+
+  /* desglose del saldo insuficiente con la marca de lo que necesitaba */
+  .tx-desglose { margin-block-start: var(--e-1); }
+  .tx-desglose__pista { position: relative; padding-block-start: 1.4rem; }
+  .tx-desglose__marca {
+    position: absolute; inset-block: 0 -4px; inset-inline-start: var(--pos, 100%);
+    border-inline-start: 2px solid var(--rechazado);
+  }
+  .tx-desglose__marca span {
+    position: absolute; inset-block-start: 0; inset-inline-end: 4px;
+    font-size: var(--t-2xs); font-weight: 600; color: var(--rechazado); white-space: nowrap;
+  }
+
+  /* -------------------------------------------------------------- pendientes */
+  .tx-pend__cuenta { font-size: var(--t-s); color: var(--texto-2); }
+  .tx-pend__vacio { font-size: var(--t-s); color: var(--texto-3); padding: var(--e-3) 0; }
+  .tx-pend__lista { display: grid; gap: var(--e-1); max-block-size: 30rem; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: 2px; }
+  .tx-pend__lista:empty { display: none; }
+  .tx-pend__item {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px var(--e-3); align-items: center;
+    padding: var(--e-2) var(--e-3);
+    background: var(--sup-2);
+    border-radius: var(--r-2);
+    border-inline-start: 3px solid var(--sup-4);
+  }
+  .tx-pend__item[data-proximo="si"] { border-inline-start-color: var(--acento); }
+  .tx-pend__item[data-proximo="no"] { background: transparent; box-shadow: inset 0 0 0 1px var(--linea-suave); }
+  .tx-pend__ruta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--e-1); font-size: var(--t-s); }
+  .tx-pend__ruta .icono { --tam-icono: 0.9rem; color: var(--texto-3); }
+  .tx-pend__monto { font-size: var(--t-m); font-weight: 600; text-align: end; }
+  .tx-pend__ids { display: flex; flex-wrap: wrap; gap: 0 var(--e-3); font-size: var(--t-2xs); color: var(--texto-3); }
+  .tx-pend__ids .hash { min-block-size: 1.5rem; font-size: var(--t-2xs); }
+  .tx-pend__t { font-size: var(--t-2xs); color: var(--texto-3); text-align: end; }
+  .tx-pend__corte { display: flex; align-items: center; gap: var(--e-2); padding-block: var(--e-1); font-size: var(--t-2xs); color: var(--texto-3); letter-spacing: 0.04em; }
+  .tx-pend__corte::before, .tx-pend__corte::after { content: ""; flex: 1; border-block-start: 1px dashed var(--linea); }
+
+  /* ---------------------------------------------------------------- atajos */
+  .tx-atajo .entrada { max-inline-size: 7rem; }
+  .tx-autopiloto { display: grid; gap: var(--e-2); padding: var(--e-3) var(--e-4); border: 1px dashed color-mix(in oklab, var(--advertencia) 45%, transparent); border-radius: var(--r-2); }
+  .tx-autopiloto__titulo { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+  .tx-autopiloto__titulo > .icono { color: var(--advertencia); }
+}
