@@ -410,7 +410,7 @@ function pintarFirma(ctx, animar) {
       `Pega el sobre y el título (${pegadoTexto(f.r, f.M)}) y se queda con lo que sobra al dividir entre ${G.q}. Nadie lo elige.`,
       f.cuentas.reto),
     linea(3, 'La respuesta', 's', f.s, 'respuesta',
-      `Junta el número al azar con la clave privada: ${f.k} + ${f.x}·${f.e}. Solo quien sabe x puede hacer esta cuenta.`,
+      `Junta el número al azar con la clave privada: ${f.k} + ${f.x} × ${f.e}. Solo quien sabe x puede hacer esta cuenta.`,
       f.cuentas.respuesta));
   A.lineasFirma.hidden = false;
   K.reemplazar(A.tarjetaFirma,
@@ -509,11 +509,11 @@ function juzgar(G, f, v) {
     explicacion = ['La cuenta no cae en ningún lugar de la curva (da el «punto al infinito»): no hay sobre que pegar con el título, así que la firma no vale.'];
   } else if (igual(v.rv, f.r) && v.M !== f.M) {
     explicacion = [
-      h('p', `El sobre rehecho es el mismo (${ver(v.rv)}), pero ahora se pega con el título ${v.M} en vez del ${f.M}: la huella cambia y ya no da el reto de la firma.`),
+      h('p', `El sobre rehecho es el mismo de la firma, ${ver(v.rv)}. Pero ahora se pega con el título ${v.M} en vez del ${f.M}: la huella cambia y ya no da el reto de la firma.`),
       'La firma queda amarrada a SU título: no sirve para ningún otro.'];
   } else {
     explicacion = [
-      `Con esos números, quien verifica cae en ${ver(v.rv)}, no en el sobre de la firma (${ver(f.r)}), y la huella sale distinta.`,
+      `Con esos números, quien verifica cae en ${ver(v.rv)} y no en el sobre de la firma, ${ver(f.r)}: la huella sale distinta.`,
       'Sin la clave privada no hay forma de fabricar una respuesta que cuadre.'];
   }
   return {
@@ -928,7 +928,7 @@ function pintarPasoB(ctx, n) {
         h('div.sch-conjunta__texto',
           h('p', 'Es la única llave que verá quien verifique. Se arma con las dos llaves públicas y sus pesos: ',
             h('code', zp ? 'ỹ = y1^a1 · y2^a2' : 'Ỹ = a1·Y1 + a2·Y2'), '.'),
-          h('p.sch-nota', `Su clave privada sería a1·x1 + a2·x2 = ${a.a}·${a.x} + ${b.a}·${b.x} = ${a.a * a.x + b.a * b.x} → ${r.x_conjunta_teorica} (módulo ${G.q}), pero nadie la calcula: Alicia no sabe x2 y Beto no sabe x1.`))));
+          h('p.sch-nota', `Su clave privada sería a1 × x1 + a2 × x2 = ${a.a} × ${a.x} + ${b.a} × ${b.x} = ${a.a * a.x + b.a * b.x} → ${r.x_conjunta_teorica} (módulo ${G.q}), pero nadie la calcula: Alicia no sabe x2 y Beto no sabe x1.`))));
     K.narrar(ctx, 'Llave conjunta lista', `UAN y UNAM juntaron sus llaves públicas en una sola: ${ver(r.clave_conjunta)}.`, 'info');
   } else if (n === 2) {
     K.reemplazar(B.area[2],
@@ -1036,10 +1036,18 @@ async function trampaParteFalsa(ctx, boton) {
   if (!r || B.hecho < 4) return;
   const q = GRUPOS[L.grupo].q;
   const beto = r.firmantes[1];
-  const s2 = (beto.s + 1) % q;
-  const sMal = (r.s + 1) % q;
-  const v = await K.accion(ctx, boton, K.post('schnorr/verificar', { grupo: L.grupo, y: r.clave_conjunta, M: r.M, s: sMal, e: r.e }));
-  if (!v || L.B !== B || B.res !== r) return;
+  // Beto suma algo a su parte. Con tan pocos retos posibles, un cambio puede cuadrar por suerte
+  // (eso ya lo enseña «Inventar una firma»); aquí se prueba con el siguiente hasta que no cuadre.
+  let delta = 1;
+  let v = null;
+  for (let d = 1; d < Math.min(q, 6); d++) {
+    delta = d;
+    v = await K.accion(ctx, boton, K.post('schnorr/verificar', { grupo: L.grupo, y: r.clave_conjunta, M: r.M, s: (r.s + d) % q, e: r.e }));
+    if (!v || L.B !== B || B.res !== r) return;
+    if (!v.valida) break;
+  }
+  const s2 = (beto.s + delta) % q;
+  const sMal = (r.s + delta) % q;
   B.tVer.hidden = false;
   if (v.valida) {
     K.pintarVeredicto(B.tVer, { estado: 'aviso', titulo: 'Pasó… por pura casualidad',
@@ -1150,7 +1158,7 @@ function pintarCuentas(ctx) {
         ['Clave pública', 'y = g^(−x)', 'Y = −x·G'],
         ['Sobre cerrado', 'r = g^k', 'R = k·G'],
         ['Verificación', 'r_v = g^s·y^e', 'R_v = s·G + e·Y'],
-      ].map(([c, a, b]) => h('tr', h('th', { scope: 'row' }, c), h('td', a), h('td', b))))))));
+      ].map(([c, a, b]) => h('tr', h('th', { scope: 'row' }, c), h('td', a), h('td', b)))))));
   K.reemplazar(L.cuentasCuerpo, partes);
 }
 

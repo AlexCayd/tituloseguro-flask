@@ -14,8 +14,9 @@ conoce un secreto, SIN revelar nada más. Dos construcciones del documento:
   B. 3-coloración de Goldreich–Micali–Wigderson (sección 3): Peggy conoce una coloración válida de
      un grafo (vecinos de distinto color). En cada ronda baraja los 3 colores, se compromete con el
      color de cada vértice en «sobres» (hash con nonce de 256 bits) y abre SÓLO los dos extremos de la
-     arista que pide Víctor. Una tramposa es descubierta con probabilidad ≥ 1/|E| por ronda:
-     k = ⌈|E|·ln(1/ε)⌉ rondas (187 para |E| = 14 y ε = 10⁻⁶).
+     arista que pide Víctor. Una tramposa es descubierta con probabilidad ≥ 1/|E| por ronda, así que
+     pasa k rondas con probabilidad ≤ (1 − 1/|E|)^k. Bastan k = ⌈ln ε / ln(1 − 1/|E|)⌉ rondas
+     (187 para |E| = 14 y ε = 10⁻⁶); la cota más simple ⌈|E|·ln(1/ε)⌉ = 194 también alcanza.
 
 En Título Seguro: una institución demuestra que posee su llave privada sin enseñarla (A) y la
 coordinadora de exámenes demuestra que tiene un horario sin choques sin revelarlo (B).

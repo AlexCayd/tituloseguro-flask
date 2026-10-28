@@ -36,6 +36,7 @@ const custodio = (x) => CUSTODIOS[x - 1] ?? `Custodio ${x}`;
 const serie = (id) => `${id.slice(0, 4)}·${id.slice(4)}`;
 const enLista = (xs) => (xs.length <= 1 ? String(xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}`);
 const nHojas = (n) => (n === 1 ? '1 hoja' : `${n} hojas`);
+const miles = (n) => n.toLocaleString('es-MX');
 
 export default {
   montar(host, ctx, meta) {
@@ -255,6 +256,9 @@ function pintarSeleccion(ctx) {
     hoja.el.dataset.escaneada = dentro ? 'si' : 'no';
     const ico = hoja.boton.querySelector('use');
     ico?.setAttribute('href', dentro ? '#i-ok' : '#i-buscar');
+    // el texto dice el estado (no solo el icono): «Escaneada» / «Escanear»
+    const rotulo = hoja.boton.querySelector('span:not(.solo-lectores)');
+    if (rotulo) rotulo.textContent = dentro ? 'Escaneada' : 'Escanear';
   }
   pintarLector(ctx);
 }
@@ -677,7 +681,7 @@ function limpiar(ctx) {
       h('figcaption', 'La imagen limpia')),
     h('div.qr-limpio__texto',
       h('p', 'Cada cuadrito de 2 × 2 puntos se vuelve uno solo: si sus 4 puntos son negros, queda negro; si solo 2, queda blanco.'),
-      h('p', h('strong', iguales === total ? `Idéntico al QR original: ${total} de ${total} cuadros.` : `Coincide en ${iguales} de ${total} cuadros.`)),
+      h('p', h('strong', iguales === total ? `Idéntico al QR original: ${miles(total)} de ${miles(total)} cuadros.` : `Coincide en ${miles(iguales)} de ${miles(total)} cuadros.`)),
       h('p', 'Dice: ', h('q.esq-valor', L.visTexto)),
       h('p.texto-3', 'Pruébalo: apúntale con la cámara de tu teléfono.')));
   L.visLimpio.hidden = false;

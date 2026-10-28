@@ -137,6 +137,9 @@
   .esq-contenedor[data-esquema="schnorr"] .sch-campos { display: flex; flex-wrap: wrap; gap: var(--e-4) var(--e-5); align-items: end; }
   .esq-contenedor[data-esquema="schnorr"] .sch-campos > :is(.campo, .sch-con-dado) { flex: 1 1 13rem; min-inline-size: 0; }
   .esq-contenedor[data-esquema="schnorr"] .sch-campos > .sch-campo-num { flex: 0 1 11rem; }
+  /* el número al azar con su dado: pide sitio; si no cabe junto al título, baja a su propio renglón */
+  .esq-contenedor[data-esquema="schnorr"] .sch-campos > .sch-con-dado { flex: 2 1 22rem; }
+  .esq-contenedor[data-esquema="schnorr"] .sch-desl__cabeza .campo__etiqueta { flex-wrap: wrap; gap: 0 var(--e-2); }
   .esq-contenedor[data-esquema="schnorr"] .sch-campo-num .entrada { font-size: var(--t-m); font-weight: 600; }
   .esq-contenedor[data-esquema="schnorr"] .sch-desl { gap: 0; }
   .esq-contenedor[data-esquema="schnorr"] .sch-desl .campo__ayuda { margin-block-start: calc(-1 * var(--e-1)); }

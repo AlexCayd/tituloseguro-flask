@@ -439,7 +439,7 @@ function pintarMedidor(ctx, { desde = null } = {}) {
   cortarConteo(L);
   if (L.descubierta) {
     texto(L.medNumero, '¡Descubierta!');
-    texto(L.medTexto, `Peggy cayó en la ronda ${L.descubierta}. Un solo choque basta para saber que mintió.`);
+    texto(L.medTexto, `Peggy cayó en la ronda ${L.descubierta}. Basta una sola ronda que falle para saber que mintió.`);
   } else {
     if (desde !== null && desde !== p) contarProb(L, desde, p);
     else texto(L.medNumero, formatoProb(p));
@@ -857,12 +857,13 @@ function pintarCuentasAExtra(ctx) {
   const cota = m * Math.log(1 / eps);
   const sup = (n) => String(n).split('').map((d) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(d)] ?? (d === '-' ? '⁻' : d)).join('');
   const expo = Math.round(Math.log10(eps));
+  const [mant, ex] = ((1 - 1 / m) ** k).toExponential(1).split('e');
   K.reemplazar(L.cuentasAExtra,
     h('p', `Si el horario tuviera un choque, al menos una de las |E| = ${m} líneas lo delata. Víctor elige al azar, así que en cada ronda lo atrapa con probabilidad de al menos 1/${m}, y Peggy se escapa con ${m - 1}/${m}:`),
     h('p.esq-cuenta', [
       `Pr[escapar k rondas] ≤ (1 − 1/${m})^k = (${m - 1}/${m})^k`,
       `k = ⌈ln ε / ln(${m - 1}/${m})⌉ = ⌈ln 10${sup(expo)} / ln(${m - 1}/${m})⌉ = ⌈${exacto.toFixed(1)}⌉ = ${k}`,
-      `(${m - 1}/${m})^${k} ≈ ${((1 - 1 / m) ** k).toExponential(1).replace('e-', ' × 10^-')}  <  ε = 10${sup(expo)}`,
+      `(${m - 1}/${m})^${k} ≈ ${mant} × 10${sup(Number(ex))}  <  ε = 10${sup(expo)}`,
     ].join('\n')),
     h('p', `La cuenta rápida del documento, k ≈ |E|·ln(1/ε) = ${m} × ${Math.log(1 / eps).toFixed(1)} ≈ ${Math.ceil(cota)}, usa (1 − 1/|E|)^k ≤ e^(−k/|E|) y deja unas rondas de margen; la exacta da ${k}.`),
     h('p', 'Las rondas van una tras otra, con turnos revueltos y números al azar nuevos cada vez. Hacerlas todas a la vez (en paralelo) puede romper el conocimiento cero; para no conversar, se aplica Fiat–Shamir a todas las rondas.'));
@@ -1148,10 +1149,10 @@ async function bDescuido(ctx, boton) {
       ['Respuesta al reto 2', `s₂ = ${K.corto(r2.s, 8)}`],
       ['Llave que despejó Víctor', K.corto(ex.x_extraida, 8)],
       [`Llave secreta real de la ${unam}`, K.corto(ex.x_real, 8)],
-      ['¿Es la misma?', ex.coincide ? `sí: ahora cualquiera puede hacerse pasar por la ${unam}` : 'no'],
+      ['¿Es la misma?', ex.coincide ? 'sí, idéntica' : 'no'],
     ]) });
   K.explicar(L.bExplica,
-    'El número al azar es lo que tapa la llave dentro de la respuesta. Si se usa dos veces, basta restar una respuesta de la otra para que la tapa se cancele y la llave quede al descubierto.',
+    `Con esa llave, cualquiera puede hacerse pasar por la ${unam}. El número al azar es lo que tapa la llave dentro de la respuesta: si se usa dos veces, basta restar una respuesta de la otra para que la tapa se cancele.`,
     'Así se rompió la PlayStation 3 en 2010: Sony firmaba usando siempre el mismo número «al azar», y con dos firmas se despejó su llave. Por eso cada sobre lleva un número nuevo que nunca se repite.');
   K.narrar(ctx, `Llave de la ${unam} expuesta`, 'Repitió su número al azar con dos retos distintos.', 'error');
   if (L.bCuentasDet.open) pintarCuentasB(ctx);
