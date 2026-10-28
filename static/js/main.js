@@ -250,7 +250,7 @@ async function asegurarInstancia(modo, id, parametros = SIN_PARAMETROS) {
   const sinRed = h('div.vista__sin-red', { hidden: true });
   const seccion = h('section.vista', { dataset: { vista: id, modo }, 'aria-labelledby': tituloId, hidden: true },
     h('header.vista__cabecera',
-      h('p.vista__ceja.etiqueta-instrumento', nombreModo(modo)),
+      h('p.vista__ceja.etiqueta-instrumento', vista.ceja || nombreModo(modo)),
       titulo,
       vista.descripcion ? h('p.vista__descripcion', vista.descripcion) : null,
     ),

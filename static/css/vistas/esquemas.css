@@ -1,0 +1,251 @@
+/* VISTA · Criptografía, explicada fácil — portada de cinco tarjetas, barra entre herramientas y el
+   KIT compartido por los cinco esquemas (cabecera, pasos, veredicto, explicación, cuentas, trampas,
+   QR). Cada esquema añade su hoja en css/vistas/esquemas/<id>.css (la carga la vista al abrirlo).
+   Tono visual: el mismo instrumento oscuro de la app, pero con más aire y letra más grande en lo
+   que importa: la frase que explica y el resultado. */
+
+@layer vistas {
+
+  .vista[data-vista="esquemas"] .esq { display: grid; gap: var(--e-6); min-inline-size: 0; }
+
+  /* ============================================================= portada */
+  .vista[data-vista="esquemas"] .esq-portada { display: grid; gap: var(--e-5); }
+  .vista[data-vista="esquemas"] .esq-portada__intro { display: grid; gap: var(--e-2); max-inline-size: 70ch; }
+  .vista[data-vista="esquemas"] .esq-portada__intro h2 { font-size: var(--t-xl); }
+  .vista[data-vista="esquemas"] .esq-portada__intro p { color: var(--texto-2); }
+  .vista[data-vista="esquemas"] .esq-portada__nota { font-size: var(--t-xs); color: var(--texto-3) !important; }
+  .vista[data-vista="esquemas"] .esq-portada__nota .icono { --tam-icono: 0.95rem; }
+
+  .vista[data-vista="esquemas"] .esq-tarjetas {
+    display: grid; gap: var(--e-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  }
+  .vista[data-vista="esquemas"] .esq-tarjeta { display: grid; }
+  .vista[data-vista="esquemas"] .esq-tarjeta__enlace {
+    position: relative;
+    display: grid; grid-template-rows: auto auto 1fr auto auto; gap: var(--e-3);
+    padding: var(--e-5);
+    color: var(--texto); text-decoration: none;
+    background: var(--sup-1);
+    border: 1px solid var(--linea-suave);
+    border-radius: var(--r-3);
+    box-shadow: var(--sombra-1);
+    transition: background-color var(--dur-micro) var(--curva-func), border-color var(--dur-micro) var(--curva-func),
+                transform var(--dur-entrada) var(--curva-firma), box-shadow var(--dur-entrada) var(--curva-firma);
+  }
+  .vista[data-vista="esquemas"] .esq-tarjeta__enlace:hover {
+    background: var(--sup-2); border-color: var(--acento-borde); text-decoration: none;
+    box-shadow: var(--sombra-2);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .vista[data-vista="esquemas"] .esq-tarjeta__enlace:hover { transform: translateY(-2px); }
+  }
+  .vista[data-vista="esquemas"] .esq-tarjeta__enlace:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+  .vista[data-vista="esquemas"] .esq-tarjeta__num {
+    position: absolute; inset-block-start: var(--e-4); inset-inline-end: var(--e-5);
+    font-family: var(--f-titular); font-size: var(--t-3xl); font-weight: 700; line-height: 1;
+    color: color-mix(in oklab, var(--acento) 30%, var(--sup-3));
+  }
+  .vista[data-vista="esquemas"] .esq-tarjeta__icono {
+    --tam-icono: 1.6rem;
+    display: grid; place-items: center;
+    inline-size: 3rem; block-size: 3rem; border-radius: var(--r-3);
+    color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .vista[data-vista="esquemas"] .esq-tarjeta__titulo { font-family: var(--f-titular); font-size: var(--t-l); font-weight: 650; line-height: var(--lh-titulo); padding-inline-end: 2.5rem; }
+  .vista[data-vista="esquemas"] .esq-tarjeta__metafora { font-size: var(--t-s); color: var(--texto-2); line-height: var(--lh-texto); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__caso { font-size: var(--t-xs); color: var(--texto-2); padding-block-start: var(--e-3); border-block-start: 1px dashed var(--linea); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__caso .etiqueta-instrumento { color: var(--texto-3); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__pie { display: flex; align-items: center; justify-content: space-between; gap: var(--e-3); flex-wrap: wrap; }
+  .vista[data-vista="esquemas"] .esq-tarjeta__tecnico { font-family: var(--f-mono); font-size: var(--t-2xs); color: var(--texto-3); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__ir { display: inline-flex; align-items: center; gap: var(--e-1); font-weight: 650; font-size: var(--t-s); color: var(--acento-texto); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__ir .icono { transition: transform var(--dur-micro) var(--curva-func); }
+  .vista[data-vista="esquemas"] .esq-tarjeta__enlace:hover .esq-tarjeta__ir .icono { transform: translateX(3px); }
+
+  /* =============================================================== barra */
+  .vista[data-vista="esquemas"] .esq-barra {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-4);
+    padding: var(--e-2);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+    scroll-margin-block-start: calc(var(--alto-cabecera) + 3.75rem);
+  }
+  .vista[data-vista="esquemas"] .esq-barra__volver { gap: var(--e-2); }
+  .vista[data-vista="esquemas"] .esq-barra__lista { display: flex; gap: 2px; flex: 1 1 auto; min-inline-size: 0; overflow-x: auto; scrollbar-width: none; }
+  .vista[data-vista="esquemas"] .esq-barra__item {
+    display: inline-flex; align-items: center; gap: var(--e-2);
+    min-block-size: var(--objetivo); padding: 0 var(--e-3);
+    font-size: var(--t-xs); font-weight: 600; color: var(--texto-2); text-decoration: none; white-space: nowrap;
+    border-radius: var(--r-2);
+  }
+  .vista[data-vista="esquemas"] .esq-barra__item:hover { background: var(--sup-2); color: var(--texto); text-decoration: none; }
+  .vista[data-vista="esquemas"] .esq-barra__item[aria-current="page"] { color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1px var(--acento-borde); }
+  .vista[data-vista="esquemas"] .esq-barra__num {
+    display: grid; place-items: center; inline-size: 1.4rem; block-size: 1.4rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-2xs); background: var(--sup-3); color: var(--texto);
+  }
+  .vista[data-vista="esquemas"] .esq-barra__item[aria-current="page"] .esq-barra__num { background: var(--acento); color: var(--tinta-oscura); }
+  .vista[data-vista="esquemas"] .esq-barra__pasar { display: flex; gap: var(--e-2); margin-inline-start: auto; }
+  @container vista (max-width: 1180px) { .vista[data-vista="esquemas"] .esq-barra__item:not([aria-current="page"]) .esq-barra__nombre { display: none; } }
+  @container vista (max-width: 640px) {
+    .vista[data-vista="esquemas"] .esq-barra__nombre { display: none; }
+    .vista[data-vista="esquemas"] .esq-barra__pasar { margin-inline-start: 0; }
+  }
+
+  .vista[data-vista="esquemas"] .esq-escena { min-inline-size: 0; }
+  .vista[data-vista="esquemas"] .esq-contenedor { display: grid; gap: var(--e-6); min-inline-size: 0; }
+  .vista[data-vista="esquemas"] .esq-cargando { color: var(--texto-3); padding: var(--e-6) 0; }
+
+  /* ============================================================ KIT ====== */
+  /* cabecera de un esquema */
+  .vista[data-vista="esquemas"] .esq-cabecera { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4) var(--e-5); align-items: start; }
+  .vista[data-vista="esquemas"] .esq-cabecera__marca {
+    --tam-icono: 2rem;
+    position: relative; display: grid; place-items: center;
+    inline-size: 4.5rem; block-size: 4.5rem; border-radius: var(--r-3);
+    color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1px var(--acento-borde);
+  }
+  .vista[data-vista="esquemas"] .esq-cabecera__num {
+    position: absolute; inset-block-start: -0.55rem; inset-inline-start: -0.55rem;
+    display: grid; place-items: center; inline-size: 1.6rem; block-size: 1.6rem; border-radius: 50%;
+    font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 700;
+    color: var(--tinta-oscura); background: var(--acento);
+  }
+  .vista[data-vista="esquemas"] .esq-cabecera__texto { display: grid; gap: var(--e-2); max-inline-size: 72ch; }
+  .vista[data-vista="esquemas"] .esq-cabecera__titulo { font-size: var(--t-2xl); }
+  .vista[data-vista="esquemas"] .esq-cabecera__metafora { font-size: var(--t-l); line-height: 1.45; color: var(--texto); }
+  .vista[data-vista="esquemas"] .esq-cabecera__historia { color: var(--texto-2); }
+  .vista[data-vista="esquemas"] .esq-cabecera__tecnico { font-size: var(--t-xs); color: var(--texto-3); }
+  .vista[data-vista="esquemas"] .esq-cabecera__tecnico .etiqueta-instrumento { color: var(--texto-3); }
+  @container vista (max-width: 560px) {
+    .vista[data-vista="esquemas"] .esq-cabecera { grid-template-columns: minmax(0, 1fr); }
+    .vista[data-vista="esquemas"] .esq-cabecera__marca { inline-size: 3.5rem; block-size: 3.5rem; --tam-icono: 1.6rem; }
+  }
+
+  /* pasos numerados, unidos por una línea */
+  .vista[data-vista="esquemas"] .esq-pasos { position: relative; display: grid; gap: var(--e-5); }
+  .vista[data-vista="esquemas"] .esq-paso { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--e-4); }
+  .vista[data-vista="esquemas"] .esq-paso:not(:last-child)::before {
+    content: ""; position: absolute; inset-inline-start: calc(1.25rem - 1px); inset-block: 2.75rem calc(-1 * var(--e-5) + 0.25rem);
+    inline-size: 2px; background: var(--linea-suave); border-radius: 1px;
+  }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="hecho"]:not(:last-child)::before { background: color-mix(in oklab, var(--valido) 50%, var(--linea-suave)); }
+  .vista[data-vista="esquemas"] .esq-paso__num {
+    --tam-icono: 1.1rem;
+    display: grid; place-items: center;
+    inline-size: 2.5rem; block-size: 2.5rem; border-radius: 50%;
+    font-family: var(--f-mono); font-weight: 700; font-size: var(--t-m);
+    color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1.5px var(--acento-borde);
+    transition: background-color var(--dur-entrada) var(--curva-func), color var(--dur-entrada) var(--curva-func);
+  }
+  .vista[data-vista="esquemas"] .esq-paso__num > * { grid-area: 1 / 1; }
+  .vista[data-vista="esquemas"] .esq-paso__hecho { opacity: 0; }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="hecho"] .esq-paso__num { color: var(--tinta-oscura); background: var(--valido); box-shadow: none; }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="hecho"] .esq-paso__num > span { opacity: 0; }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="hecho"] .esq-paso__hecho { opacity: 1; stroke-width: 2.4; }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="espera"] .esq-paso__num { color: var(--texto-3); background: var(--sup-2); box-shadow: inset 0 0 0 1.5px var(--linea); }
+  .vista[data-vista="esquemas"] .esq-paso[data-estado="espera"] .esq-paso__cuerpo { opacity: 0.55; }
+  .vista[data-vista="esquemas"] .esq-paso__cuerpo { display: grid; gap: var(--e-3); min-inline-size: 0; padding-block-start: 0.35rem; transition: opacity var(--dur-entrada) var(--curva-func); }
+  .vista[data-vista="esquemas"] .esq-paso__titulo { font-size: var(--t-l); }
+  .vista[data-vista="esquemas"] .esq-paso__ayuda { color: var(--texto-2); font-size: var(--t-s); max-inline-size: 68ch; }
+  @container vista (max-width: 520px) {
+    .vista[data-vista="esquemas"] .esq-paso { grid-template-columns: 2rem minmax(0, 1fr); gap: var(--e-3); }
+    .vista[data-vista="esquemas"] .esq-paso__num { inline-size: 2rem; block-size: 2rem; font-size: var(--t-s); }
+    .vista[data-vista="esquemas"] .esq-paso:not(:last-child)::before { inset-inline-start: calc(1rem - 1px); inset-block-start: 2.25rem; }
+  }
+
+  /* fila de acciones de un paso */
+  .vista[data-vista="esquemas"] .esq-acciones { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-3); align-items: center; }
+  .vista[data-vista="esquemas"] .esq-acciones .boton--primario { min-block-size: 2.75rem; padding-inline: var(--e-5); font-size: var(--t-m); }
+  .vista[data-vista="esquemas"] .esq-frase { font-size: var(--t-s); color: var(--texto-2); }
+  .vista[data-vista="esquemas"] .esq-frase strong { color: var(--acento-texto); }
+
+  /* veredicto grande */
+  .vista[data-vista="esquemas"] .esq-veredicto {
+    --v: var(--texto-3);
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--e-4); align-items: start;
+    padding: var(--e-5);
+    border-radius: var(--r-3);
+    background: color-mix(in oklab, var(--v) 10%, var(--sup-1));
+    border: 1px solid color-mix(in oklab, var(--v) 40%, transparent);
+    border-inline-start: 4px solid var(--v);
+  }
+  .vista[data-vista="esquemas"] .esq-veredicto[data-estado="ok"] { --v: var(--valido); }
+  .vista[data-vista="esquemas"] .esq-veredicto[data-estado="mal"] { --v: var(--rechazado); }
+  .vista[data-vista="esquemas"] .esq-veredicto[data-estado="aviso"] { --v: var(--advertencia); }
+  .vista[data-vista="esquemas"] .esq-veredicto[data-estado="info"] { --v: var(--pendiente); }
+  .vista[data-vista="esquemas"] .esq-veredicto[data-estado="vacio"] {
+    display: block; padding: var(--e-4) var(--e-5);
+    background: transparent; border: 1px dashed var(--linea); border-inline-start-width: 1px;
+  }
+  .vista[data-vista="esquemas"] .esq-veredicto__vacio { color: var(--texto-3); font-size: var(--t-s); }
+  .vista[data-vista="esquemas"] .esq-veredicto__icono {
+    --tam-icono: 1.5rem;
+    display: grid; place-items: center; inline-size: 2.75rem; block-size: 2.75rem; border-radius: 50%;
+    color: var(--tinta-oscura); background: var(--v);
+  }
+  .vista[data-vista="esquemas"] .esq-veredicto__icono .icono { stroke-width: 2.4; }
+  .vista[data-vista="esquemas"] .esq-veredicto__texto { display: grid; gap: var(--e-2); min-inline-size: 0; }
+  .vista[data-vista="esquemas"] .esq-veredicto__titulo { font-family: var(--f-titular); font-size: var(--t-xl); font-weight: 650; line-height: var(--lh-titulo); }
+  .vista[data-vista="esquemas"] .esq-veredicto__detalle { color: var(--texto-2); }
+  .vista[data-vista="esquemas"] .esq-veredicto q,
+  .vista[data-vista="esquemas"] .esq-valor {
+    font-family: var(--f-mono); font-size: 0.95em; color: var(--texto);
+    padding: 0.05em 0.4em; border-radius: var(--r-1); background: var(--sup-3); quotes: none; overflow-wrap: anywhere;
+  }
+
+  /* ¿qué acaba de pasar? */
+  .vista[data-vista="esquemas"] .esq-explica {
+    display: grid; gap: var(--e-2);
+    padding: var(--e-4) var(--e-5);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+  }
+  .vista[data-vista="esquemas"] .esq-explica__titulo { display: flex; align-items: center; gap: var(--e-1); font-weight: 650; font-size: var(--t-s); color: var(--acento-texto); }
+  .vista[data-vista="esquemas"] .esq-explica__texto { display: grid; gap: var(--e-2); color: var(--texto-2); max-inline-size: 72ch; }
+  .vista[data-vista="esquemas"] .esq-explica__texto strong { color: var(--texto); }
+
+  /* ver las cuentas / para saber más */
+  .vista[data-vista="esquemas"] .esq-cuentas,
+  .vista[data-vista="esquemas"] .esq-mas { border: 1px solid var(--linea-suave); border-radius: var(--r-3); padding: 0 var(--e-4); background: var(--sup-1); }
+  .vista[data-vista="esquemas"] .esq-cuentas > summary .icono,
+  .vista[data-vista="esquemas"] .esq-mas > summary .icono { --tam-icono: 1rem; color: var(--acento-texto); }
+  .vista[data-vista="esquemas"] .esq-cuentas__cuerpo,
+  .vista[data-vista="esquemas"] .esq-mas__cuerpo { display: grid; gap: var(--e-3); padding-block: var(--e-2) var(--e-4); font-size: var(--t-s); color: var(--texto-2); min-inline-size: 0; }
+  .vista[data-vista="esquemas"] .esq-mas__cuerpo ul { display: grid; gap: var(--e-2); padding-inline-start: 1.2em; list-style: disc; }
+  .vista[data-vista="esquemas"] .esq-mas__cuerpo strong { color: var(--texto); }
+  .vista[data-vista="esquemas"] .esq-cuenta {
+    font-family: var(--f-mono); font-size: var(--t-xs); line-height: 1.7; color: var(--texto);
+    padding: var(--e-2) var(--e-3); background: var(--sup-2); border-radius: var(--r-2); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .vista[data-vista="esquemas"] .esq-renglones { display: grid; font-size: var(--t-xs); }
+  .vista[data-vista="esquemas"] .esq-renglones > div { display: grid; grid-template-columns: minmax(8rem, auto) minmax(0, 1fr); gap: var(--e-3); padding: var(--e-1) 0; border-block-end: 1px dotted var(--linea-suave); }
+  .vista[data-vista="esquemas"] .esq-renglones dt { color: var(--texto-2); }
+  .vista[data-vista="esquemas"] .esq-renglones dd { font-family: var(--f-mono); color: var(--texto); overflow-wrap: anywhere; }
+
+  /* prueba a hacer trampa */
+  .vista[data-vista="esquemas"] .esq-trampas {
+    display: grid; gap: var(--e-3);
+    padding: var(--e-4) var(--e-5);
+    border: 1px dashed color-mix(in oklab, var(--rechazado) 45%, var(--linea)); border-radius: var(--r-3);
+    background: color-mix(in oklab, var(--rechazado) 4%, transparent);
+  }
+  .vista[data-vista="esquemas"] .esq-trampas__titulo { display: flex; align-items: center; gap: var(--e-1); font-size: var(--t-m); }
+  .vista[data-vista="esquemas"] .esq-trampas__titulo .icono { color: var(--rechazado); }
+  .vista[data-vista="esquemas"] .esq-trampas__lista { display: grid; gap: var(--e-3); grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+  .vista[data-vista="esquemas"] .esq-trampa { display: grid; gap: var(--e-1); align-content: start; }
+  .vista[data-vista="esquemas"] .esq-trampas__boton { justify-content: flex-start; white-space: normal; text-align: start; min-block-size: var(--objetivo); padding-block: var(--e-2); }
+  .vista[data-vista="esquemas"] .esq-trampa__texto { font-size: var(--t-xs); color: var(--texto-3); }
+
+  /* QR: oscuro sobre claro, como impreso */
+  .vista[data-vista="esquemas"] .esq-qr { display: block; inline-size: 100%; block-size: auto; border-radius: var(--r-1); }
+  .vista[data-vista="esquemas"] .esq-qr__fondo { fill: var(--texto); }
+  .vista[data-vista="esquemas"] .esq-qr__modulos { fill: var(--tinta-oscura); }
+
+  /* ruido visual de un pedazo */
+  .vista[data-vista="esquemas"] .esq-ruido { display: block; inline-size: 100%; block-size: 1rem; fill: currentColor; color: var(--texto-3); }
+
+  /* campos del kit */
+  .vista[data-vista="esquemas"] .esq-campos { display: flex; flex-wrap: wrap; gap: var(--e-4) var(--e-5); align-items: end; }
+  .vista[data-vista="esquemas"] .esq-campos .campo { flex: 1 1 14rem; }
+  .vista[data-vista="esquemas"] .esq-campos .campo--ancho { flex: 3 1 22rem; }
+  .vista[data-vista="esquemas"] .esq-campos .segmentado { flex-wrap: wrap; }
+}

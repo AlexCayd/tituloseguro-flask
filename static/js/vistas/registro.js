@@ -7,3 +7,4 @@ export { default as pos_escenario } from './pos_escenario.js';
 export { default as cadena } from './cadena.js';
 export { default as laboratorio } from './laboratorio.js';
 export { default as bitacora } from './bitacora.js';
+export { default as esquemas } from './esquemas.js';

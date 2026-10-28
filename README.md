@@ -46,9 +46,43 @@ Se recomienda `--no-reload`: la simulación vive en memoria y el recargador la r
 Pruebas automáticas (núcleo sin Flask, API, fuzz, determinismo, rendimiento):
 
 ```bash
-pytest            # ~460 pruebas, ~35 s
+pytest            # ~570 pruebas, ~40 s
 python -m nucleo.demo --modo pos --n 20 --bloques 30 --semilla x     # demo sin web
 ```
+
+## Los cinco esquemas criptográficos (pestaña «Criptografía»)
+
+Implementan los documentos de la carpeta [`esquemas/`](esquemas/). Cada uno se explica con una metáfora
+cotidiana, se prueba en 3–4 pasos guiados, tiene botones de «Prueba a hacer trampa» y deja las cuentas
+reales plegadas en «Ver las cuentas». No dependen del consenso: funcionan igual en PoW y PoS y no
+necesitan un consorcio creado.
+
+| # | En la interfaz | Esquema (documento) | Núcleo | Qué se puede probar |
+|---|---|---|---|---|
+| 1 | Partir un secreto en pedazos | Shamir sobre 𝔽ₚ ([esquema_shamir.pdf](esquemas/esquema_shamir.pdf)) | `nucleo/esquemas/shamir.py` | la llave maestra repartida «k de n» entre rectores; con menos de k sale basura; un pedazo falso se delata con la huella pública; el ejemplo (3, 5) sobre 𝔽₃₁ paso a paso |
+| 2 | Respaldo en códigos QR | Shamir sobre GF(2⁸) + QR + criptografía visual ([qr_shamir.pdf](esquemas/qr_shamir.pdf)) | `nucleo/esquemas/qr_shamir.py` | hojas QR en formato SSQR1; CRC (error de copia) vs. suma interna (custodio tramposo); modo bóveda con AES-GCM; acetatos de Naor–Shamir y sombras XOR |
+| 3 | Demostrar sin revelar | Conocimiento cero: protocolo Σ de Schnorr y 3-coloración GMW ([pipeline_conocimiento_cero.pdf](esquemas/pipeline_conocimiento_cero.pdf)) | `nucleo/esquemas/conocimiento_cero.py` | el horario de exámenes sin choques (187 rondas, tramposa atrapada); entrar sin decir la contraseña; impostor; número al azar repetido ⇒ llave expuesta; simulador |
+| 4 | Firmar sin decir quién | Firmas de anillo AOS y LSAG ([firmas_anillo_pipeline.pdf](esquemas/firmas_anillo_pipeline.pdf)) | `nucleo/esquemas/anillo.py` | denuncia anónima (1 de n); la «vuelta» del anillo; urna en la que nadie vota dos veces (imagen de clave) |
+| 5 | Una firma digital con números pequeños | Schnorr en ℤ*₂₃ y en y² = x³ + 2x + 2 sobre 𝔽₁₇, MuSig ([schnorr_juguete.pdf](esquemas/schnorr_juguete.pdf)) | `nucleo/esquemas/schnorr_juguete.py` | firmar y verificar con todas las cuentas; mensaje alterado; k repetido ⇒ x despejada; doble titulación (multifirma) y ataque de clave maliciosa |
+
+Piezas compartidas: `secp256k1.py` (curva en Python puro, coordenadas jacobianas; esquemas 3 y 4),
+`aritmetica.py` (inverso por Euclides extendido, Lagrange) y `azar.py` (azar derivado por HMAC). Una
+sola dependencia nueva: `segno` (genera los QR, Python puro); AES-GCM sale de `cryptography`.
+
+- **Sin estado en el servidor.** Las claves privadas de cada institución y el azar de los protocolos
+  interactivos se derivan de un secreto que nunca sale del servidor (`SECRETO_ESQUEMAS`) y de una
+  semilla de sesión; la interfaz solo ve una clave privada cuando el propio ejercicio la expone
+  (responder dos retos con el mismo número al azar).
+- **Vectores fijos.** `tests/test_esquemas.py` comprueba todos los números de los documentos (la tabla
+  24, 12, 8, 12, 24 de Shamir; 0x53 → 0x99/0xDC/0x16 en GF(2⁸); 187 rondas; las firmas (4, 5) y (8, 16);
+  las huellas de MuSig `51174631`, `21d0a206`, `3095fa0f`, `2881cf99`…). `tests/test_api_esquemas.py`
+  cubre la API con dos fuzz (aleatorio y por mutación de cuerpos válidos): nunca un 5xx.
+- **Didáctico.** Nada de esto es de tiempo constante ni está auditado; los grupos de juguete del
+  esquema 5 no tienen seguridad alguna (lo dicen los propios documentos).
+
+API: `GET /api/esquemas` lista los cinco con sus rutas (`/api/esquemas/shamir/…`, `/qr/…`, `/zk/…`,
+`/anillo/…`, `/schnorr/…`). Contrato completo en
+[`static/js/vistas/esquemas/LEEME.md`](static/js/vistas/esquemas/LEEME.md).
 
 ## Cómo usarla (2 minutos)
 
@@ -57,6 +91,7 @@ python -m nucleo.demo --modo pos --n 20 --bloques 30 --semilla x     # demo sin 
 3. **PoW:** pulsa *Minar* y mira competir a los mineros (nonce actual, intentos y último hash en vivo; todos se detienen al haber ganador). Mina ≥ 10 bloques y observa cómo la recompensa pasa de *pendiente* a *disponible* a las 6 confirmaciones.
 4. **PoS:** inicia una ronda paso a paso (apuestas → sorteo → candidato → votación → aceptado/rechazado) o en automático. Marca un nodo como **deshonesto** para ver el rechazo, el castigo y el nuevo sorteo.
 5. En **Laboratorio** manipula bloques o envía cadenas falsas a un nodo y comprueba que las rechaza (y por qué).
+6. En **Criptografía** elige una de las cinco herramientas y sigue sus pasos (con los valores por defecto basta con pulsar los botones en orden).
 
 ## Estructura
 
@@ -73,8 +108,12 @@ nucleo/                 TODO el consenso; se ejecuta y prueba sin Flask
   ataques.py            13 ataques del laboratorio + corrupción local
   simulacion.py         Simulacion (candado, rollback, pool) y Laboratorio (pow + pos)
   entradas.py           validación estricta de entradas
+  esquemas/             los cinco esquemas criptográficos (Shamir, QR, conocimiento cero, anillo, Schnorr)
+rutas_esquemas.py       rutas /api/esquemas/… (mismo estilo que app.py: validan y llaman al núcleo)
+esquemas/               los cinco documentos (PDF) que implementa la pestaña «Criptografía»
 templates/ static/      interfaz (JS vanilla en módulos ES + SVG, sin build ni CDN)
-tests/                  pytest: un test por caso de la sección 5 + fuzz + determinismo
+                        static/js/vistas/esquemas.js + esquemas/<id>.js: la pestaña «Criptografía»
+tests/                  pytest: un test por caso de la sección 5 + fuzz + determinismo + esquemas
 REPORTE.md              reporte breve de diseño y decisiones
 ```
 

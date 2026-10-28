@@ -22,6 +22,7 @@ from nucleo.errores import ErrorSim
 from nucleo.instituciones import INSTITUCIONES, TARIFAS, UNIDAD
 from nucleo.pos import FASES
 from nucleo.simulacion import Laboratorio
+import rutas_esquemas
 
 # En Windows el registro puede servir .js como text/plain y los módulos ES dejarían de cargar.
 mimetypes.add_type("text/javascript", ".js")
@@ -74,7 +75,10 @@ def qentero(nombre, minimo, maximo, defecto=None):
 def create_app(config=None):
     app = Flask(__name__)
     app.config.update(MAX_CONTENT_LENGTH=64 * 1024, N_MIN=C.N_MIN, N_MAX=C.N_MAX, DIF_MIN=C.DIF_MIN,
-                      DIF_MAX=C.DIF_MAX)
+                      DIF_MAX=C.DIF_MAX,
+                      # de aquí se derivan las claves privadas y el azar de los esquemas criptográficos:
+                      # nunca sale del servidor (las pruebas fijan uno para ser reproducibles)
+                      SECRETO_ESQUEMAS=secrets.token_bytes(32))
     app.config.update(config or {})
     app.json.ensure_ascii = False
     app.json.sort_keys = False
@@ -431,6 +435,9 @@ def create_app(config=None):
         d = cuerpo(sim, {"bloques"}, ("bloques",))
         n = parse_entero(d["bloques"], "bloques", 1, 20, etiqueta="El número de bloques")
         return exito(sim, 202 if sim.modo == "pow" else 200, **sim.autopiloto(n))
+
+    # ---------------------------------------- los cinco esquemas criptográficos
+    rutas_esquemas.registrar(app, leer_json)
 
     return app
 

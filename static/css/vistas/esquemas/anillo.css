@@ -1,0 +1,301 @@
+/* ESQUEMA 4 · Firmar sin decir quién (firmas de anillo AOS y LSAG). Prefijo «an-». La carga esquemas.js
+   al abrirlo. La idea visual: un anillo de instituciones idénticas (todas con «?») y un destello que da la
+   vuelta; si regresa al número de salida, «la vuelta cierra» y el anillo se enciende en verde. Lo secreto
+   (quién eres, quién vota) va sobre un fondo rayado de «confidencial»; lo público, sobre superficie lisa. */
+
+@layer vistas {
+
+  /* ------------------------------------------------------ demostraciones */
+  .esq-contenedor[data-esquema="anillo"] .an-demo { display: grid; gap: var(--e-5); min-inline-size: 0; }
+  .esq-contenedor[data-esquema="anillo"] .an-demo + .an-demo { padding-block-start: var(--e-6); border-block-start: 1px solid var(--linea-suave); }
+  /* misma columna que los pasos (2.5rem + gap): la letra se alinea con los números */
+  .esq-contenedor[data-esquema="anillo"] .an-demo__cabecera { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--e-4); align-items: start; }
+  .esq-contenedor[data-esquema="anillo"] .an-demo__letra {
+    display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--r-2);
+    font-family: var(--f-titular); font-size: var(--t-l); font-weight: 700; line-height: 1;
+    color: var(--tinta-oscura); background: var(--acento);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-demo__texto { display: grid; gap: var(--e-1); max-inline-size: 70ch; padding-block-start: 0.15rem; }
+  .esq-contenedor[data-esquema="anillo"] .an-demo__titulo { font-size: var(--t-xl); }
+  .esq-contenedor[data-esquema="anillo"] .an-demo__lema { color: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-espera { color: var(--texto-3); font-size: var(--t-s); }
+
+  /* ------------------------------------------------------ paso 1 · grupo */
+  .esq-contenedor[data-esquema="anillo"] .an-chips { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-chip {
+    --tam-icono: 0.9rem;
+    display: inline-flex; align-items: center; gap: var(--e-1);
+    min-block-size: var(--objetivo); padding: 0 var(--e-4) 0 var(--e-3);
+    font-family: var(--f-titular); font-size: var(--t-s); font-weight: 650; color: var(--texto-2);
+    background: var(--sup-1); border: 1px solid var(--linea); border-radius: var(--r-pildora);
+    cursor: pointer;
+    transition: background-color var(--dur-micro) var(--curva-func), border-color var(--dur-micro) var(--curva-func), color var(--dur-micro) var(--curva-func);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-chip:hover { color: var(--texto); background: var(--sup-2); border-color: var(--linea-fuerte); }
+  .esq-contenedor[data-esquema="anillo"] .an-chip:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .esq-contenedor[data-esquema="anillo"] .an-chip[aria-pressed="true"] { color: var(--acento-texto); background: var(--acento-tenue); border-color: var(--acento-borde); }
+  .esq-contenedor[data-esquema="anillo"] .an-chip[aria-pressed="true"] .an-chip__no,
+  .esq-contenedor[data-esquema="anillo"] .an-chip[aria-pressed="false"] .an-chip__si { display: none; }
+  .esq-contenedor[data-esquema="anillo"] .an-chip__si { stroke-width: 2.4; }
+  .esq-contenedor[data-esquema="anillo"] .an-limite { color: var(--advertencia); font-weight: 600; }
+
+  /* ------------------------------------ tarjetas de institución (radios) */
+  .esq-contenedor[data-esquema="anillo"] .an-quien {
+    display: grid; gap: var(--e-2);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+    min-inline-size: 0; margin: 0; padding: 0; border: 0;
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-leyenda { float: none; padding: 0; margin-block-end: var(--e-2); font-size: var(--t-s); font-weight: 600; color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-op {
+    position: relative;
+    display: grid; gap: 2px; align-content: start;
+    min-block-size: 3.5rem; padding: var(--e-2) var(--e-3);
+    background: var(--sup-1); border: 1px solid var(--linea); border-radius: var(--r-2);
+    cursor: pointer;
+    transition: background-color var(--dur-micro) var(--curva-func), border-color var(--dur-micro) var(--curva-func), box-shadow var(--dur-entrada) var(--curva-firma);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-op:hover { background: var(--sup-2); border-color: var(--linea-fuerte); }
+  .esq-contenedor[data-esquema="anillo"] .an-op__radio { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .esq-contenedor[data-esquema="anillo"] .an-op:has(.an-op__radio:focus-visible) { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .esq-contenedor[data-esquema="anillo"] .an-op:has(.an-op__radio:checked) {
+    background: color-mix(in oklab, var(--acento) 10%, var(--sup-1));
+    border-color: var(--acento-borde);
+    box-shadow: var(--acento-brillo);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-op__sigla { font-family: var(--f-titular); font-size: var(--t-l); font-weight: 650; line-height: 1.15; padding-inline-end: 2.75rem; }
+  .esq-contenedor[data-esquema="anillo"] .an-op__nombre { font-size: var(--t-2xs); color: var(--texto-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .esq-contenedor[data-esquema="anillo"] .an-op__marca {
+    --tam-icono: 0.8rem;
+    position: absolute; inset-block-start: var(--e-2); inset-inline-end: var(--e-2);
+    display: none; align-items: center; gap: 3px;
+    padding: 1px 7px 1px 5px; border-radius: var(--r-pildora);
+    font-size: var(--t-2xs); font-weight: 700; color: var(--tinta-oscura); background: var(--acento);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-op:has(.an-op__radio:checked) .an-op__marca { display: inline-flex; }
+  .esq-contenedor[data-esquema="anillo"] .an-op__ya { --tam-icono: 0.8rem; display: inline-flex; align-items: center; gap: 3px; font-size: var(--t-2xs); font-weight: 600; color: var(--valido); }
+
+  /* lo secreto: fondo rayado de «confidencial» */
+  .esq-contenedor[data-esquema="anillo"] .an-secreto,
+  .esq-contenedor[data-esquema="anillo"] .an-urna__lado--secreto {
+    background:
+      repeating-linear-gradient(-45deg, color-mix(in oklab, var(--acento) 6%, transparent) 0 9px, transparent 9px 18px),
+      var(--sup-1);
+    border: 1px dashed var(--acento-borde);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-secreto {
+    --tam-icono: 1.25rem;
+    display: flex; align-items: center; gap: var(--e-3);
+    padding: var(--e-3) var(--e-4); border-radius: var(--r-2);
+    font-size: var(--t-s); color: var(--texto-2);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-secreto .icono { color: var(--acento-texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-secreto strong { color: var(--texto); }
+
+  /* ------------------------------------------------- paso 3 · la carta */
+  .esq-contenedor[data-esquema="anillo"] .an-form { display: grid; gap: var(--e-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-mensaje { min-block-size: 4.5rem; padding-block: var(--e-2); line-height: 1.45; resize: vertical; }
+  .esq-contenedor[data-esquema="anillo"] .campo__ayuda[data-excede] { color: var(--rechazado); }
+
+  .esq-contenedor[data-esquema="anillo"] .an-carta {
+    display: grid; gap: var(--e-3);
+    padding: var(--e-4) var(--e-5);
+    background: var(--sup-2); border: 1px solid var(--linea); border-radius: var(--r-3);
+    box-shadow: var(--sombra-2);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__texto {
+    margin: 0; font-family: var(--f-titular); font-size: var(--t-xl); font-weight: 600; line-height: 1.3;
+    color: var(--texto); text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__texto::before { content: "«"; color: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__texto::after { content: "»"; color: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__firma { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); font-size: var(--t-s); color: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__grupo { display: flex; flex-wrap: wrap; gap: var(--e-1); }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__grupo li {
+    padding: 2px var(--e-2); border-radius: var(--r-pildora);
+    font-family: var(--f-titular); font-size: var(--t-xs); font-weight: 650; color: var(--texto); background: var(--sup-4);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__sello {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-3); align-items: center;
+    padding-block-start: var(--e-3); border-block-start: 1px dashed var(--linea);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__sello .esq-ruido { color: color-mix(in oklab, var(--acento) 55%, var(--texto-3)); }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__bytes { font-family: var(--f-mono); font-size: var(--t-xs); color: var(--texto-3); white-space: nowrap; }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__nota,
+  .esq-contenedor[data-esquema="anillo"] .an-carta__desfase {
+    --tam-icono: 0.95rem;
+    display: flex; align-items: start; gap: var(--e-2); font-size: var(--t-xs); color: var(--texto-3);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__nota .icono,
+  .esq-contenedor[data-esquema="anillo"] .an-carta__desfase .icono { margin-block-start: 0.1em; }
+  .esq-contenedor[data-esquema="anillo"] .an-carta__desfase { color: var(--advertencia); font-weight: 600; }
+
+  /* ------------------------------------------- paso 4 · el anillo */
+  .esq-contenedor[data-esquema="anillo"] .an-escena {
+    display: grid; grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr); gap: var(--e-5); align-items: center;
+    padding: var(--e-4) var(--e-5);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+    scroll-margin-block: calc(var(--alto-cabecera) + var(--e-4)) var(--e-4);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-escena__lienzo {
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--acento) 9%, transparent), transparent);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-escena__lienzo:has(> .an-anillo[data-estado="cierra"]) {
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--valido) 13%, transparent), transparent);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-escena__lienzo:has(> .an-anillo[data-estado="abierta"]) {
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--rechazado) 8%, transparent), transparent);
+  }
+
+  .esq-contenedor[data-esquema="anillo"] .an-anillo { display: block; inline-size: 100%; block-size: auto; overflow: visible; }
+  .esq-contenedor[data-esquema="anillo"] .an-arco { fill: none; stroke: var(--linea); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 5; }
+  /* luz de cada eslabón: dasharray en fracciones (pathLength = 1); la animación solo mueve el offset */
+  .esq-contenedor[data-esquema="anillo"] .an-luz {
+    fill: none; stroke: var(--acento); stroke-width: 3.5; stroke-linecap: butt;
+    stroke-dasharray: 1 2; stroke-dashoffset: 0;
+    opacity: 0;
+    transition: stroke var(--dur-entrada) var(--curva-func);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo:is([data-estado="recorriendo"], [data-estado="cierra"], [data-estado="abierta"]) .an-luz { opacity: 1; }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="cierra"] .an-luz { stroke: var(--valido); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-luz { stroke: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-resultado="abierta"] .an-luz--cierre { stroke-dasharray: 0.8 2; }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-luz--cierre { stroke: var(--rechazado); }
+
+  .esq-contenedor[data-esquema="anillo"] .an-nodo__circulo {
+    fill: var(--sup-2); stroke: var(--linea-fuerte); stroke-width: 1.5;
+    transition: stroke var(--dur-entrada) var(--curva-func), fill var(--dur-entrada) var(--curva-func);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-nodo__sigla { font-family: var(--f-titular); font-size: 10.5px; font-weight: 700; fill: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-nodo__duda { fill: var(--acento); stroke: var(--sup-1); stroke-width: 2; }
+  .esq-contenedor[data-esquema="anillo"] .an-nodo__duda-txt { font-family: var(--f-titular); font-size: 10.5px; font-weight: 800; fill: var(--tinta-oscura); }
+  .esq-contenedor[data-esquema="anillo"] .an-nodo__halo {
+    fill: none; stroke: var(--acento); stroke-width: 2; opacity: 0;
+    transform-box: fill-box; transform-origin: center;
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="cierra"] .an-nodo__circulo { stroke: var(--valido); fill: color-mix(in oklab, var(--valido) 12%, var(--sup-2)); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="cierra"] .an-nodo__halo { stroke: var(--valido); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-nodo__circulo { stroke: var(--linea); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-nodo__sigla { fill: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-nodo[data-cambiada="si"] .an-nodo__circulo { stroke: var(--rechazado); stroke-dasharray: 4 3; }
+
+  .esq-contenedor[data-esquema="anillo"] .an-destello { opacity: 0; }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="recorriendo"] .an-destello { opacity: 1; }
+  .esq-contenedor[data-esquema="anillo"] .an-destello__halo { fill: var(--acento); opacity: 0.3; }
+  .esq-contenedor[data-esquema="anillo"] .an-destello__nucleo { fill: var(--texto); stroke: var(--acento); stroke-width: 2; }
+
+  .esq-contenedor[data-esquema="anillo"] .an-x { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-x { opacity: 1; }
+  .esq-contenedor[data-esquema="anillo"] .an-x__fondo { fill: var(--sup-1); stroke: var(--rechazado); stroke-width: 1.5; }
+  .esq-contenedor[data-esquema="anillo"] .an-x__trazo { fill: none; stroke: var(--rechazado); stroke-width: 2.4; stroke-linecap: round; }
+
+  .esq-contenedor[data-esquema="anillo"] .an-fuera__circulo { fill: var(--sup-2); stroke: var(--rechazado); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .esq-contenedor[data-esquema="anillo"] .an-fuera__etq { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--rechazado); }
+
+  .esq-contenedor[data-esquema="anillo"] .an-centro__grande { font-family: var(--f-titular); font-size: 26px; font-weight: 700; fill: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-centro__chico { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; fill: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="neutro"] .an-centro__grande { font-size: 22px; fill: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="cierra"] .an-centro__grande { fill: var(--valido); }
+  .esq-contenedor[data-esquema="anillo"] .an-anillo[data-estado="abierta"] .an-centro__grande { font-size: 21px; fill: var(--rechazado); }
+
+  /* número de salida contra número de llegada */
+  .esq-contenedor[data-esquema="anillo"] .an-lectura { display: grid; gap: var(--e-3); align-content: center; min-inline-size: 0; }
+  .esq-contenedor[data-esquema="anillo"] .an-numero {
+    display: grid; gap: 2px;
+    padding: var(--e-2) var(--e-3);
+    background: var(--sup-2); border-radius: var(--r-2); border-inline-start: 3px solid var(--linea-fuerte);
+    transition: border-color var(--dur-entrada) var(--curva-func);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-numero__etq { font-size: var(--t-xs); color: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-numero__valor { font-family: var(--f-mono); font-size: var(--t-m); color: var(--texto); overflow-wrap: anywhere; }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura[data-estado="cierra"] .an-numero { border-inline-start-color: var(--valido); }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura[data-estado="abierta"] .an-numero--llegada { border-inline-start-color: var(--rechazado); }
+  .esq-contenedor[data-esquema="anillo"] .an-comparacion { display: flex; align-items: center; gap: var(--e-2); font-weight: 650; color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-comparacion__signo {
+    display: grid; place-items: center; flex: none; inline-size: 1.75rem; block-size: 1.75rem; border-radius: 50%;
+    font-family: var(--f-mono); font-weight: 700; color: var(--tinta-oscura); background: var(--texto-3);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura[data-estado="cierra"] .an-comparacion__signo { background: var(--valido); }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura[data-estado="abierta"] .an-comparacion__signo { background: var(--rechazado); }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura[data-estado="recorriendo"] .an-comparacion__signo { background: var(--acento); }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura__aviso { --tam-icono: 1.1rem; display: flex; align-items: start; gap: var(--e-2); font-weight: 600; color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura__aviso .icono { color: var(--rechazado); margin-block-start: 0.15em; stroke-width: 2.4; }
+  .esq-contenedor[data-esquema="anillo"] .an-lectura__nota { font-size: var(--t-xs); color: var(--texto-3); }
+
+  /* la carta alterada, en el veredicto */
+  .esq-contenedor[data-esquema="anillo"] .an-cambio { display: grid; gap: var(--e-1); font-size: var(--t-s); }
+  .esq-contenedor[data-esquema="anillo"] .an-cambio > div { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: var(--e-2); align-items: baseline; }
+  .esq-contenedor[data-esquema="anillo"] .an-cambio dt { color: var(--texto-3); }
+
+  /* ------------------------------------------------------ B · la urna */
+  .esq-contenedor[data-esquema="anillo"] .an-urna { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--e-4); align-items: start; }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__lado { display: grid; gap: var(--e-4); align-content: start; min-inline-size: 0; padding: var(--e-4) var(--e-5); border-radius: var(--r-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__lado--publico { background: var(--sup-1); border: 1px solid var(--linea-suave); }
+  .esq-contenedor[data-esquema="anillo"] .an-rotulo {
+    --tam-icono: 0.95rem;
+    display: flex; align-items: center; gap: var(--e-1);
+    font-size: var(--t-2xs); font-weight: 600; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: var(--texto-2);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-rotulo .icono { color: var(--acento-texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-pregunta { display: grid; gap: 2px; }
+  .esq-contenedor[data-esquema="anillo"] .an-pregunta p { font-family: var(--f-titular); font-size: var(--t-l); font-weight: 600; line-height: 1.3; color: var(--texto); text-wrap: balance; }
+  .esq-contenedor[data-esquema="anillo"] .an-campo { display: grid; justify-items: start; }
+  .esq-contenedor[data-esquema="anillo"] .an-campo .segmentado { min-inline-size: 12rem; }
+
+  .esq-contenedor[data-esquema="anillo"] .an-recuento { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-4); align-items: center; }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__cifra { display: grid; justify-items: center; gap: 2px; line-height: 1; }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__num { font-family: var(--f-titular); font-size: var(--t-2xl); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__etq { font-size: var(--t-xs); font-weight: 600; color: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__barra { display: flex; gap: 2px; block-size: 0.6rem; border-radius: var(--r-pildora); background: var(--sup-3); overflow: hidden; }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__si { flex: var(--si, 0) 1 0%; background: var(--acento); }
+  .esq-contenedor[data-esquema="anillo"] .an-recuento__no { flex: var(--no, 0) 1 0%; background: var(--pendiente); }
+
+  .esq-contenedor[data-esquema="anillo"] .an-papeletas { display: grid; gap: var(--e-1); }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta {
+    display: grid; grid-template-columns: 5rem 2.25rem minmax(0, 1fr); gap: var(--e-1) var(--e-2); align-items: center;
+    min-block-size: 2.25rem; padding: var(--e-1) var(--e-3);
+    font-size: var(--t-s);
+    background: var(--sup-2); border-radius: var(--r-2); border-inline-start: 3px solid var(--valido);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta[data-estado="rechazada"] {
+    background: color-mix(in oklab, var(--rechazado) 10%, var(--sup-1));
+    border-inline-start-color: var(--rechazado);
+  }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta__num { font-weight: 650; color: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta[data-estado="rechazada"] .an-papeleta__num { color: var(--rechazado); }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta__opcion { font-family: var(--f-titular); font-weight: 700; color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-papeleta__nota { grid-column: 1 / -1; font-size: var(--t-xs); color: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-papeletas__vacia { padding: var(--e-2) 0; font-size: var(--t-s); color: var(--texto-3); }
+  /* el color del folio sale de su propio valor: mismo color, mismo folio */
+  .esq-contenedor[data-esquema="anillo"] .an-folio { display: inline-flex; align-items: center; gap: var(--e-1); min-inline-size: 0; font-size: var(--t-xs); color: var(--texto-3); }
+  .esq-contenedor[data-esquema="anillo"] .an-folio__punto { flex: none; inline-size: 0.7rem; block-size: 0.7rem; border-radius: 50%; background: oklch(0.8 0.12 var(--tono, 255)); }
+  .esq-contenedor[data-esquema="anillo"] .an-folio__hex { font-family: var(--f-mono); color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__aviso { font-size: var(--t-xs); color: var(--texto-2); }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__aviso:empty { display: none; }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__pie { display: flex; justify-content: flex-end; }
+  .esq-contenedor[data-esquema="anillo"] .an-urna__pie .boton { min-block-size: var(--objetivo); }
+
+  /* ------------------------------------------------------------ cuentas */
+  .esq-contenedor[data-esquema="anillo"] .an-subtitulo { font-size: var(--t-m); margin-block-start: var(--e-3); color: var(--texto); }
+  .esq-contenedor[data-esquema="anillo"] .an-real { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .esq-contenedor[data-esquema="anillo"] .an-tabla td.mono { font-size: var(--t-xs); }
+  /* las fórmulas no se pasan a mayúsculas: rᵢ y Rᵢ, cᵢ y Cᵢ son cosas distintas */
+  .esq-contenedor[data-esquema="anillo"] .an-tabla .an-formula { text-transform: none; letter-spacing: 0; font-family: var(--f-mono); }
+  .esq-contenedor[data-esquema="anillo"] .an-tabla tfoot td { font-weight: 600; color: var(--texto); }
+
+  /* ------------------------------------------------------- responsivo */
+  @container vista (max-width: 820px) {
+    .esq-contenedor[data-esquema="anillo"] .an-urna { grid-template-columns: minmax(0, 1fr); }
+  }
+  @container vista (max-width: 640px) {
+    .esq-contenedor[data-esquema="anillo"] .an-escena { grid-template-columns: minmax(0, 1fr); padding: var(--e-4); }
+    .esq-contenedor[data-esquema="anillo"] .an-escena__lienzo { justify-self: center; inline-size: min(100%, 19rem); }
+  }
+  @container vista (max-width: 520px) {
+    .esq-contenedor[data-esquema="anillo"] .an-demo__cabecera { grid-template-columns: 2rem minmax(0, 1fr); gap: var(--e-3); }
+    .esq-contenedor[data-esquema="anillo"] .an-demo__letra { inline-size: 2rem; block-size: 2rem; font-size: var(--t-m); }
+    .esq-contenedor[data-esquema="anillo"] .an-urna__lado { padding: var(--e-4); }
+    .esq-contenedor[data-esquema="anillo"] .an-carta { padding: var(--e-4); }
+    .esq-contenedor[data-esquema="anillo"] .an-papeleta { grid-template-columns: 4.5rem 2rem minmax(0, 1fr); }
+  }
+}

@@ -1,0 +1,127 @@
+/* ESQUEMA 1 · Partir un secreto en pedazos (Shamir). Prefijo «sh-». La carga esquemas.js al abrirlo. */
+
+@layer vistas {
+
+  .esq-contenedor[data-esquema="shamir"] .esq-form { display: grid; gap: var(--e-4); }
+  .esq-contenedor[data-esquema="shamir"] .campo__ayuda[data-excede] { color: var(--rechazado); }
+  .esq-contenedor[data-esquema="shamir"] .sh-espera { color: var(--texto-3); font-size: var(--t-s); }
+
+  /* ---------------------------------------------------------- custodios */
+  .esq-contenedor[data-esquema="shamir"] .sh-custodios {
+    display: grid; gap: var(--e-3);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 11.5rem), 1fr));
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodios:empty { display: none; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio { display: grid; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton {
+    display: grid; gap: var(--e-2); align-content: start; text-align: start;
+    padding: var(--e-3) var(--e-4) var(--e-4);
+    color: var(--texto);
+    background: var(--sup-1);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-3);
+    cursor: pointer;
+    transition: background-color var(--dur-micro) var(--curva-func), border-color var(--dur-micro) var(--curva-func),
+                box-shadow var(--dur-entrada) var(--curva-firma), transform var(--dur-entrada) var(--curva-firma);
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton:hover { background: var(--sup-2); border-color: var(--linea-fuerte); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton[aria-pressed="true"] {
+    background: color-mix(in oklab, var(--acento) 10%, var(--sup-1));
+    border-color: var(--acento-borde);
+    box-shadow: var(--acento-brillo);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton[aria-pressed="true"] { transform: translateY(-2px); }
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio[data-falso="si"] .sh-custodio__boton { border-color: color-mix(in oklab, var(--rechazado) 60%, var(--linea)); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__pedazo { display: flex; align-items: center; justify-content: space-between; gap: var(--e-2); color: var(--texto-3); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__falso {
+    font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--tinta-oscura); background: var(--rechazado); padding: 1px 6px; border-radius: var(--r-pildora);
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__inst { display: grid; gap: 1px; min-inline-size: 0; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__inst strong { font-family: var(--f-titular); font-size: var(--t-xl); line-height: 1.1; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__inst span { font-size: var(--t-2xs); color: var(--texto-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio .esq-ruido { color: color-mix(in oklab, var(--acento) 55%, var(--texto-3)); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio[data-falso="si"] .esq-ruido { color: var(--rechazado); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__valor { font-size: var(--t-xs); color: var(--texto-2); }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__accion {
+    --tam-icono: 0.95rem;
+    display: inline-flex; align-items: center; gap: var(--e-1);
+    margin-block-start: var(--e-1); font-size: var(--t-xs); font-weight: 650; color: var(--texto-2);
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-custodio__boton[aria-pressed="true"] .sh-custodio__accion { color: var(--acento-texto); }
+
+  .esq-contenedor[data-esquema="shamir"] .sh-huella { font-size: var(--t-xs); color: var(--texto-2); display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-1); }
+  .esq-contenedor[data-esquema="shamir"] .sh-huella .icono { color: var(--acento-texto); }
+
+  /* --------------------------------------------------------------- mesa */
+  .esq-contenedor[data-esquema="shamir"] .sh-mesa-marco {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3) var(--e-4);
+    padding: var(--e-3) var(--e-4);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-mesa { display: flex; gap: var(--e-2); }
+  .esq-contenedor[data-esquema="shamir"] .sh-cerradura {
+    --tam-icono: 1.1rem;
+    display: grid; place-items: center; inline-size: 2.4rem; block-size: 2.4rem; border-radius: 50%;
+    color: var(--texto-3); background: var(--sup-2); box-shadow: inset 0 0 0 1.5px var(--linea);
+    transition: background-color var(--dur-entrada) var(--curva-func), color var(--dur-entrada) var(--curva-func);
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-cerradura[data-estado="llena"] { color: var(--tinta-oscura); background: var(--acento); box-shadow: none; }
+  .esq-contenedor[data-esquema="shamir"] .sh-cerradura[data-estado="extra"] { color: var(--acento-texto); background: var(--acento-tenue); box-shadow: inset 0 0 0 1.5px var(--acento-borde); }
+  .esq-contenedor[data-esquema="shamir"] .sh-mesa__texto { font-size: var(--t-s); color: var(--texto-2); }
+
+  /* ------------------------------------------------------------- dibujo */
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--e-5); align-items: center;
+    padding: var(--e-5);
+    background: var(--sup-1); border: 1px solid var(--linea-suave); border-radius: var(--r-3);
+  }
+  @container vista (max-width: 760px) { .esq-contenedor[data-esquema="shamir"] .sh-dibujo { grid-template-columns: minmax(0, 1fr); } }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__texto { display: grid; gap: var(--e-3); align-content: start; }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__texto h3 { font-size: var(--t-l); }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__texto > p { color: var(--texto-2); font-size: var(--t-s); }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__pie { color: var(--texto) !important; font-weight: 600; }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__nota { font-size: var(--t-xs) !important; }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo .esq-seg { justify-self: start; }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__lienzo { background: var(--fondo); border-radius: var(--r-2); padding: var(--e-2); }
+  .esq-contenedor[data-esquema="shamir"] .sh-dibujo__svg { display: block; inline-size: 100%; block-size: auto; overflow: visible; }
+  .esq-contenedor[data-esquema="shamir"] .sh-eje { stroke: var(--linea-fuerte); stroke-width: 1; }
+  .esq-contenedor[data-esquema="shamir"] .sh-eje--y { stroke: var(--texto-3); stroke-dasharray: 3 3; }
+  .esq-contenedor[data-esquema="shamir"] .sh-marca { font-family: var(--f-mono); font-size: 9px; fill: var(--texto-3); }
+  .esq-contenedor[data-esquema="shamir"] .sh-curva { fill: none; stroke: var(--acento); stroke-width: 2.4; stroke-linecap: round; }
+  .esq-contenedor[data-esquema="shamir"] .sh-curva--duda { stroke: var(--texto-3); stroke-width: 1.6; stroke-dasharray: 5 4; }
+  .esq-contenedor[data-esquema="shamir"] .sh-punto { fill: var(--valido); stroke: var(--fondo); stroke-width: 2; }
+  .esq-contenedor[data-esquema="shamir"] .sh-punto__texto { font-size: 10px; font-weight: 600; fill: var(--valido); }
+  .esq-contenedor[data-esquema="shamir"] .sh-secreto { fill: var(--rechazado); stroke: var(--fondo); stroke-width: 2; }
+  .esq-contenedor[data-esquema="shamir"] .sh-secreto__texto { font-size: 11px; font-weight: 700; fill: var(--rechazado); }
+  .esq-contenedor[data-esquema="shamir"] .sh-duda { fill: var(--sup-1); stroke: var(--texto-2); stroke-width: 1.5; }
+  .esq-contenedor[data-esquema="shamir"] .sh-duda__texto { font-family: var(--f-mono); font-size: 9.5px; fill: var(--texto-2); }
+  /* halo del color del lienzo: las etiquetas se leen aunque crucen una curva */
+  .esq-contenedor[data-esquema="shamir"] :is(.sh-punto__texto, .sh-secreto__texto, .sh-duda__texto) {
+    paint-order: stroke; stroke: var(--fondo); stroke-width: 3px; stroke-linejoin: round;
+  }
+
+  /* ------------------------------------------------------------ cuentas */
+  .esq-contenedor[data-esquema="shamir"] .sh-chips { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .esq-contenedor[data-esquema="shamir"] .sh-chip {
+    min-block-size: 2.25rem; padding: 0 var(--e-3);
+    font-size: var(--t-xs); font-weight: 600; color: var(--texto-2);
+    background: var(--sup-2); border: 1px solid var(--linea); border-radius: var(--r-pildora);
+    cursor: pointer;
+  }
+  .esq-contenedor[data-esquema="shamir"] .sh-chip:hover { color: var(--texto); border-color: var(--linea-fuerte); }
+  .esq-contenedor[data-esquema="shamir"] .sh-chip[aria-pressed="true"] { color: var(--acento-texto); background: var(--acento-tenue); border-color: var(--acento-borde); }
+  .esq-contenedor[data-esquema="shamir"] .sh-juguete,
+  .esq-contenedor[data-esquema="shamir"] .sh-real { display: grid; gap: var(--e-3); min-inline-size: 0; }
+  .esq-contenedor[data-esquema="shamir"] .sh-tabla td strong { color: var(--acento-texto); }
+  .esq-contenedor[data-esquema="shamir"] .sh-subtitulo { font-size: var(--t-m); margin-block-start: var(--e-3); color: var(--texto); }
+  .esq-contenedor[data-esquema="shamir"] .sh-candidatos { display: flex; flex-wrap: wrap; gap: 4px; }
+  .esq-contenedor[data-esquema="shamir"] .sh-candidatos li {
+    display: grid; place-items: center; min-inline-size: 2rem; block-size: 2rem; padding: 0 4px;
+    font-family: var(--f-mono); font-size: var(--t-xs); color: var(--texto);
+    background: var(--sup-3); border-radius: var(--r-1);
+  }
+}

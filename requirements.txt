@@ -1,3 +1,4 @@
 Flask>=3.1,<4
 cryptography>=44
+segno>=1.6
 pytest>=8

@@ -1,5 +1,5 @@
 // Recorrido guiado de primera visita (sin librerías).
-// Seis pasos con una caja anclada al elemento que explica y un foco que oscurece el resto (sin
+// Siete pasos con una caja anclada al elemento que explica y un foco que oscurece el resto (sin
 // bloquear la página: es no modal). Saltable con «Saltar» o Esc; no se repite (localStorage, envuelto
 // en try/catch por el shell) y se puede volver a ver desde «Ver el recorrido» en el narrador.
 //
@@ -42,6 +42,11 @@ function pasos(modo, movil) {
       ancla: '.seccion[data-vista="laboratorio"]',
       titulo: 'Intenta falsificar un registro',
       texto: 'En «Falsificaciones» puedes alterar un registro ya sellado, registrar dos veces los mismos créditos o firmar con la clave de otra institución. Verás exactamente por qué el consorcio lo rechaza.',
+    },
+    {
+      ancla: '.seccion[data-vista="esquemas"]',
+      titulo: 'Cinco herramientas de criptografía',
+      texto: 'En «Criptografía» pruebas, con ejemplos de todos los días, cinco esquemas que protegen títulos y secretos: partir una llave en pedazos, respaldarla en códigos QR, demostrar algo sin revelarlo, firmar sin decir quién y una firma digital con números pequeños.',
     },
     {
       ancla: '.narrador__recorrido',
